@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Cooker.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Home">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <Label
+                Text="Cooker Home"
+                FontSize="28"
+                FontAttributes="Bold"/>
+
+            <Label
+                Text="Select a cuisine to begin cooking"
+                FontSize="16"/>
+
+            <Button
+                x:Name="AsianBtn"
+                Text="Asian Cuisine"
+                Clicked="Cuisine_Clicked"/>
+
+            <Button
+                x:Name="WesternBtn"
+                Text="Western Cuisine"
+                Clicked="Cuisine_Clicked"/>
+
+            <Button
+                x:Name="DessertBtn"
+                Text="Desserts"
+                Clicked="Cuisine_Clicked"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
