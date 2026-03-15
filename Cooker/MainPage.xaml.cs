@@ -9,8 +9,13 @@ public partial class MainPage : ContentPage
         InitializeComponent();
     }
 
-    private void OpenHomeBtn_Clicked(object sender, EventArgs e)
+    private async void OpenHomeBtn_Clicked(object sender, EventArgs e)
     {
-        Navigation.PushAsync(new HomePage());
+        await Navigation.PushAsync(new Pages.HomePage());
+    }
+
+    async void OpenSettings_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new SettingsPage());
     }
 }

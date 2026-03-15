@@ -1,12 +1,66 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Cooker.Pages.NewPage2"
-             Title="NewPage2">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cooker.Pages.CookingStepsPage">
+
+    <ScrollView>
+
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Entry
+                x:Name="NameEntry"
+                Placeholder="Recipe Name"/>
+
+            <Picker
+                x:Name="CuisinePicker"
+                Title="Cuisine">
+
+                <Picker.Items>
+
+                    <x:String>Chinese</x:String>
+                    <x:String>Japanese</x:String>
+                    <x:String>Italian</x:String>
+                    <x:String>Western</x:String>
+                    <x:String>Indian</x:String>
+
+                </Picker.Items>
+
+            </Picker>
+
+            <Editor
+                x:Name="IngredientsEditor"
+                Placeholder="Ingredients"/>
+
+            <Editor
+                x:Name="StepsEditor"
+                Placeholder="Cooking Steps"/>
+
+            <Label
+                Text="Add Timer"
+                FontAttributes="Bold"/>
+
+            <Entry
+                x:Name="TimerStepEntry"
+                Placeholder="Step description"/>
+
+            <Entry
+                x:Name="TimerSecondsEntry"
+                Placeholder="Seconds"
+                Keyboard="Numeric"/>
+
+            <Button
+                Text="Add Timer"
+                Clicked="AddTimer_Clicked"/>
+
+            <CollectionView x:Name="TimerCollection"/>
+
+            <Button
+                Text="Save Recipe"
+                Clicked="SaveRecipe_Clicked"/>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
 </ContentPage>

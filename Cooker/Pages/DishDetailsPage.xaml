@@ -1,12 +1,80 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Cooker.Pages.NewPage1"
-             Title="NewPage1">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cooker.Pages.DishDetailsPage">
+
+    <ScrollView>
+
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Image
+                x:Name="DishImage"
+                HeightRequest="200"
+                Aspect="AspectFill"/>
+
+            <Label
+                x:Name="DishName"
+                FontSize="28"
+                FontAttributes="Bold"/>
+
+            <Label
+                x:Name="CuisineLabel"
+                TextColor="Gray"/>
+
+            <Label
+                Text="Ingredients"
+                FontAttributes="Bold"
+                FontSize="18"/>
+
+            <Label x:Name="IngredientsLabel"/>
+
+            <Label
+                Text="Cooking Steps"
+                FontAttributes="Bold"
+                FontSize="18"/>
+
+            <Label x:Name="StepsLabel"/>
+
+            <Label
+                Text="Timers"
+                FontAttributes="Bold"
+                FontSize="18"/>
+
+            <CollectionView x:Name="TimerCollection">
+
+                <CollectionView.ItemTemplate>
+
+                    <DataTemplate>
+
+                        <Border Padding="10">
+
+                            <VerticalStackLayout>
+
+                                <Label
+                                    Text="{Binding StepDescription}"
+                                    FontAttributes="Bold"/>
+
+                                <Button
+                                    Text="Start Timer"
+                                    Clicked="StartTimer_Clicked"/>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+
+            <Button
+                Text="Edit Recipe"
+                Clicked="EditRecipe_Clicked"/>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
 </ContentPage>

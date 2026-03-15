@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cooker.Pages.RecipePage">
+
+    <ScrollView>
+
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <Entry x:Name="NameEntry" Placeholder="Recipe name"/>
+
+            <Picker
+            x:Name="CuisinePicker"
+            Title="Select Cuisine">
+
+                <Picker.Items>
+                    <x:String>Chinese</x:String>
+                    <x:String>Japanese</x:String>
+                    <x:String>Italian</x:String>
+                    <x:String>Western</x:String>
+                    <x:String>Indian</x:String>
+                </Picker.Items>
+
+            </Picker>
+
+            <Editor x:Name="IngredientsEditor"
+                    Placeholder="Ingredients"/>
+
+            <Editor x:Name="StepsEditor"
+                    Placeholder="Cooking Steps"/>
+
+            <Image
+                x:Name="RecipeImage"
+                HeightRequest="160"/>
+
+            <Button
+                Text="Add Photo"
+                Clicked="AddPhoto_Clicked"/>
+            
+            <Entry
+            x:Name="TimerStepEntry"
+            Placeholder="Step description"/>
+
+            <Entry
+            x:Name="TimerSecondsEntry"
+            Placeholder="Seconds"
+            Keyboard="Numeric"/>
+
+            <Button
+            Text="Add Timer"
+            Clicked="AddTimer_Clicked"/>
+
+            <CollectionView
+            x:Name="TimerCollection"/>
+
+            <Button
+                Text="Start Cooking Timer"
+                Clicked="StartTimer_Clicked"/>
+
+            <Button
+                Text="Share Recipe"
+                Clicked="Share_Clicked"/>
+
+            <Button
+                Text="Save"
+                Clicked="Save_Clicked"/>
+
+            <Button
+                Text="Delete"
+                Clicked="Delete_Clicked"/>
+
+            <Label Text="Cooking Timers"/>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>
