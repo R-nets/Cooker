@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-    <ContentPage
+<ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.CookingStepsPage">
@@ -8,59 +8,68 @@
 
         <VerticalStackLayout Padding="20" Spacing="15">
 
+            <Image
+                x:Name="RecipeImage"
+                HeightRequest="180"
+                Aspect="AspectFill"/>
+
+            <Button
+                Text="Add Image"
+                Clicked="AddImage_Clicked"/>
+
             <Entry
                 x:Name="NameEntry"
                 Placeholder="Recipe Name"/>
 
-            <Picker
-                x:Name="CuisinePicker"
-                Title="Cuisine">
-
+            <Picker x:Name="CuisinePicker" Title="Cuisine">
                 <Picker.Items>
-
                     <x:String>Chinese</x:String>
                     <x:String>Japanese</x:String>
                     <x:String>Italian</x:String>
                     <x:String>Western</x:String>
                     <x:String>Indian</x:String>
-
                 </Picker.Items>
-
             </Picker>
 
-            <Editor
+            <Editor  
                 x:Name="IngredientsEditor"
                 Placeholder="Ingredients"/>
 
             <Editor
                 x:Name="StepsEditor"
-                Placeholder="Cooking Steps"/>
+                Placeholder="Steps"/>
 
-            <Label
-                Text="Add Timer"
-                FontAttributes="Bold"/>
+            <Label Text="Add Timer for Step" 
+                   FontAttributes="Bold"/>
 
-            <Entry
-                x:Name="TimerStepEntry"
+            <HorizontalStackLayout Spacing="10">
+
+                <Picker x:Name="HourPicker" 
+                        Title="Hours" 
+                        WidthRequest="90"/>
+                <Picker x:Name="MinutePicker" 
+                        Title="Min" WidthRequest="90"/>
+                <Picker x:Name="SecondPicker" 
+                        Title="Sec" WidthRequest="90"/>
+
+            </HorizontalStackLayout>
+
+            <Entry 
+                x:Name="StepDescriptionEntry" 
                 Placeholder="Step description"/>
 
-            <Entry
-                x:Name="TimerSecondsEntry"
-                Placeholder="Seconds"
-                Keyboard="Numeric"/>
-
             <Button
                 Text="Add Timer"
-                Clicked="AddTimer_Clicked"/>
+                Clicked="AddTimer_Clicked"/>    
 
-            <CollectionView x:Name="TimerCollection"/>
+            <CollectionView 
+                x:Name="TimerCollection"/>
 
-            <Button
-                Text="Save Recipe"
+            <Button 
+                Text="Save Recipe" 
                 Clicked="SaveRecipe_Clicked"/>
 
         </VerticalStackLayout>
 
     </ScrollView>
-
 </ContentPage>

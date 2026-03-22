@@ -11,7 +11,11 @@ public partial class MainPage : ContentPage
 
     private async void OpenHomeBtn_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new Pages.HomePage());
+        await Navigation.PushAsync(
+    new Pages.HomePage(
+        ((App)Application.Current!).notificationService
+    )
+);
     }
 
     async void OpenSettings_Clicked(object sender, EventArgs e)

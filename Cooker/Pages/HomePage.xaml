@@ -49,64 +49,49 @@
             SelectionChanged="RecipeSelected">
 
             <CollectionView.ItemTemplate>
-
                 <DataTemplate>
 
                     <SwipeView>
 
                         <SwipeView.RightItems>
-
-                            <SwipeItems>
+                            <SwipeItems Mode="Execute">
 
                                 <SwipeItem
-                            Text="Delete"
-                            BackgroundColor="Red"
-                            Invoked="DeleteRecipeSwipe"/>
+                        Text="Delete"
+                        BackgroundColor="Red"
+                        Invoked="DeleteRecipe"/>
 
                             </SwipeItems>
-
                         </SwipeView.RightItems>
-                        <Border
-                    Margin="6"
-                    Padding="12"
-                    Background="#f7f7f7">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
-                    </Border.StrokeShape>
 
-                            <Grid ColumnDefinitions="80,*">
+                        <Border StrokeThickness="1" Padding="10" Margin="5">
+                            <VerticalStackLayout>
 
                                 <Image
-                                Source="{Binding ImagePath}"
-                                HeightRequest="70"
-                                WidthRequest="70"/>
+                                    Source="{Binding ImagePath}"
+                                    HeightRequest="120"
+                                    Aspect="AspectFill"/>
 
-                                <VerticalStackLayout Grid.Column="1">
+                                <Label
+                                    Text="{Binding Name}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"/>
 
-                                    <Label
-                                Text="{Binding Name}"
-                                FontSize="18"
-                                FontAttributes="Bold"/>
+                                <Label
+                                    Text="{Binding Cuisine}"
+                                    FontSize="12"
+                                    TextColor="Gray"/>
 
-                                    <Label
-                                Text="{Binding Cuisine}"
-                                TextColor="Gray"/>
+                                <Button
+                                    Text="❤"
+                                    Clicked="FavoriteClicked"/>
 
-                                    <Label
-                                Text="★ Favorite"
-                                IsVisible="{Binding IsFavorite}"
-                                TextColor="Orange"/>
-
-                                </VerticalStackLayout>
-
-                            </Grid>
-
+                            </VerticalStackLayout>
                         </Border>
 
                     </SwipeView>
 
                 </DataTemplate>
-
             </CollectionView.ItemTemplate>
 
         </CollectionView>

@@ -1,17 +1,24 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Cooker.Pages;
+using Cooker.Services;
 
-namespace Cooker
+namespace Cooker;
+
+public partial class App : Application
 {
-    public partial class App : Application
-    {
-        public App()
-        {
-            InitializeComponent();
-        }
+    public readonly INotificationService notificationService;
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new NavigationPage(new MainPage()));
-        }
+    public App(INotificationService service)
+    {
+        InitializeComponent();
+        notificationService = service;
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return new Window(
+            new NavigationPage(
+                new HomePage(notificationService)
+            )
+        );
     }
 }

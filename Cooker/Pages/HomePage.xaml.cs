@@ -1,4 +1,5 @@
 using Cooker.Models;
+using Cooker.Services;
 using Cooker.ViewModels;
 
 namespace Cooker.Pages;
@@ -6,10 +7,13 @@ namespace Cooker.Pages;
 public partial class HomePage : ContentPage
 {
     private readonly RecipeViewModel viewModel;
+    private readonly INotificationService notificationService;
 
-    public HomePage()
+    public HomePage(INotificationService service)
     {
         InitializeComponent();
+
+        notificationService = service;
 
         viewModel = new RecipeViewModel();
         RecipeCollection.ItemsSource = viewModel.Recipes;
@@ -25,8 +29,15 @@ public partial class HomePage : ContentPage
 
     async void RecipeSelected(object sender, SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection.FirstOrDefault() is RecipeModel recipe)
-            await Navigation.PushAsync(new DishDetailsPage(recipe));
+        if (e.CurrentSelection != null && e.CurrentSelection.Count > 0)
+        {
+            if (e.CurrentSelection[0] is RecipeModel recipe)
+            {
+                await Navigation.PushAsync(
+                    new DishDetailsPage(recipe, notificationService)
+                );
+            }
+        }
     }
 
     async void AddRecipe_Clicked(object sender, EventArgs e)
@@ -74,5 +85,23 @@ public partial class HomePage : ContentPage
             return;
 
         viewModel.DeleteRecipe(item);
+    }
+
+    void FavoriteClicked(object sender, EventArgs e)
+    {
+        if (sender is Button btn && btn.BindingContext is RecipeModel recipe)
+        {
+            recipe.IsFavorite = !recipe.IsFavorite;
+            new DatabaseService().SaveRecipe(recipe);
+            viewModel.Refresh();
+        }
+    }
+
+    void DeleteRecipe(object sender, EventArgs e)
+    {
+        if (sender is SwipeItem swipe && swipe.BindingContext is RecipeModel recipe)
+        {
+            viewModel.DeleteRecipe(recipe);
+        }
     }
 }
