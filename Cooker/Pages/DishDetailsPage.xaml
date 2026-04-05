@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-    <ContentPage
+<ContentPage
+    xmlns:layouts="clr-namespace:Cooker.Layouts"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Cooker.Pages.DishDetailsPage">
+    x:Class="Cooker.Pages.DishDetailsPage"
+    BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <ScrollView>
 
@@ -16,7 +18,8 @@
             <Label
                 x:Name="DishName"
                 FontSize="28"
-                FontAttributes="Bold"/>
+                FontAttributes="Bold"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
             <Label
                 x:Name="CuisineLabel"
@@ -25,56 +28,56 @@
             <Label
                 Text="Ingredients"
                 FontAttributes="Bold"
-                FontSize="18"/>
+                FontSize="18"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
-            <Label x:Name="IngredientsLabel"/>
+            <Label 
+                x:Name="IngredientsLabel"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
             <Label
                 Text="Cooking Steps"
                 FontAttributes="Bold"
-                FontSize="18"/>
+                FontSize="18"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
-            <Label x:Name="StepsLabel"/>
+            <Label 
+                x:Name="StepsLabel"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
+
+            <Button
+                Text="Copy Recipe Details"
+                Clicked="CopyRecipe_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
+
+            <Button
+                Text="Restart Recipe"
+                BackgroundColor="Orange"
+                TextColor="{DynamicResource PrimaryTextColor}"
+                Clicked="RestartRecipe_Clicked"/>
 
             <Label
                 Text="Timers"
                 FontAttributes="Bold"
-                FontSize="18"/>
+                FontSize="18"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
-            <CollectionView x:Name="TimerCollection">
+            <CollectionView 
+                x:Name="TimerCollection">
 
                 <CollectionView.ItemTemplate>
-
                     <DataTemplate>
-
-                        <Border Padding="10">
-
-                            <VerticalStackLayout>
-
-                                <Label
-                                    Text="{Binding StepDescription}"
-                                    FontAttributes="Bold"/>
-
-                                <Button
-                                    Text="Start Timer"
-                                    Clicked="StartTimer_Clicked"/>
-
-                            </VerticalStackLayout>
-
-                        </Border>
-
+                        <layouts:TimerCardView Loaded="TimerCard_Loaded" />
                     </DataTemplate>
-
                 </CollectionView.ItemTemplate>
 
             </CollectionView>
 
             <Button
                 Text="Edit Recipe"
-                Clicked="EditRecipe_Clicked"/>
+                Clicked="EditRecipe_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
         </VerticalStackLayout>
-
     </ScrollView>
-
 </ContentPage>

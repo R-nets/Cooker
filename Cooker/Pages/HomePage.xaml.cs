@@ -9,6 +9,8 @@ public partial class HomePage : ContentPage
     private readonly RecipeViewModel viewModel;
     private readonly INotificationService notificationService;
 
+    bool isMultiSelectMode = false;
+
     public HomePage(INotificationService service)
     {
         InitializeComponent();
@@ -29,15 +31,58 @@ public partial class HomePage : ContentPage
 
     async void RecipeSelected(object sender, SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection != null && e.CurrentSelection.Count > 0)
+        if (sender is Button)
+            return;
+
+        if (e.CurrentSelection.Count == 0)
+            return;
+
+        if (e.CurrentSelection[0] is not RecipeModel selectedRecipe)
+            return;
+
+        var animation = new Animation
         {
-            if (e.CurrentSelection[0] is RecipeModel recipe)
             {
-                await Navigation.PushAsync(
-                    new DishDetailsPage(recipe, notificationService)
-                );
+                0,
+                0.5,
+                new Animation(v =>
+        {
+            RecipeCollection.Scale = v;
+        }, 1, 0.95)
+            },
+            {
+                0.5,
+                1,
+                new Animation(v =>
+            {
+                RecipeCollection.Scale = v;
+            }, 0.95, 1)
+            },
+            {
+                0,
+                1,
+                new Animation(v =>
+            {
+                RecipeCollection.Opacity = v;
+            }, 1, 0.7)
             }
-        }
+        };
+
+        animation.Commit(
+            this,
+            "RecipeSelectAnimation",
+            16,
+            300,
+            Easing.CubicInOut,
+            async (v, c) =>
+            {
+                RecipeCollection.SelectedItem = null;
+
+                await Navigation.PushAsync(
+                    new DishDetailsPage(
+                        selectedRecipe,
+                        notificationService));
+            });
     }
 
     async void AddRecipe_Clicked(object sender, EventArgs e)
@@ -48,6 +93,11 @@ public partial class HomePage : ContentPage
     async void Settings_Clicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new SettingsPage());
+    }
+
+    async void Favorites_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new FavoriteRecipePage());
     }
 
     void CuisineChanged(object sender, EventArgs e)
@@ -89,19 +139,92 @@ public partial class HomePage : ContentPage
 
     void FavoriteClicked(object sender, EventArgs e)
     {
-        if (sender is Button btn && btn.BindingContext is RecipeModel recipe)
+        if (sender is not Button btn)
+            return;
+
+        if (btn.BindingContext is not RecipeModel recipe)
+            return;
+
+        recipe.IsFavorite = !recipe.IsFavorite;
+
+        new DatabaseService().SaveRecipe(recipe);
+
+        btn.ScaleToAsync(1.2, 100);
+        btn.ScaleToAsync(1.0, 100);
+    }
+
+    void RecipeTapped(object sender, TappedEventArgs e)
+    {
+        if (!isMultiSelectMode)
+            return;
+    }
+
+    async void RecipeLongPressed(object sender, TappedEventArgs e)
+    {
+        isMultiSelectMode = true;
+
+        RecipeCollection.SelectionMode = SelectionMode.Multiple;
+
+        bool confirm = await DisplayAlertAsync(
+            "Multi Delete Mode",
+            "You can now select multiple recipes for deletion.",
+            "OK",
+            "Cancel");
+
+        if (!confirm)
         {
-            recipe.IsFavorite = !recipe.IsFavorite;
-            new DatabaseService().SaveRecipe(recipe);
-            viewModel.Refresh();
+            isMultiSelectMode = false;
+            RecipeCollection.SelectionMode = SelectionMode.Single;
         }
     }
 
-    void DeleteRecipe(object sender, EventArgs e)
+    async void DeleteSelectedRecipes_Clicked(object sender, EventArgs e)
     {
-        if (sender is SwipeItem swipe && swipe.BindingContext is RecipeModel recipe)
+        if (RecipeCollection.SelectedItems.Count == 0)
+            return;
+
+        bool confirm = await DisplayAlertAsync(
+            "Delete Selected",
+            $"Delete {RecipeCollection.SelectedItems.Count} selected recipes?",
+            "Yes",
+            "No");
+
+        if (!confirm)
+            return;
+
+        foreach (var item in RecipeCollection.SelectedItems.ToList())
         {
-            viewModel.DeleteRecipe(recipe);
+            if (item is RecipeModel recipe)
+            {
+                viewModel.DeleteRecipe(recipe);
+            }
         }
+
+        RecipeCollection.SelectedItems.Clear();
+        RecipeCollection.SelectionMode = SelectionMode.Single;
+        isMultiSelectMode = false;
+    }
+
+    async void DeleteRecipe(object sender, EventArgs e)
+    {
+        if (sender is not SwipeItem swipe || swipe.BindingContext is not RecipeModel recipe)
+            return;
+
+        bool confirm = await DisplayAlertAsync(
+            "Delete Recipe",
+            $"Delete {recipe.Name}?",
+            "Yes",
+            "No");
+
+        if (!confirm)
+            return;
+
+        await RecipeCollection.FadeToAsync(0.5, 120);
+        await RecipeCollection.ScaleToAsync(0.97, 120);
+
+        viewModel.DeleteRecipe(recipe);
+
+        await RecipeCollection.ScaleToAsync(1, 120);
+        await RecipeCollection.FadeToAsync(1, 120);
     }
 }

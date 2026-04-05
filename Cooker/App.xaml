@@ -10,6 +10,20 @@
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
                 <ResourceDictionary Source="Resources/Styles/CustomStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="PageBackgroundColorLight">#FFFFFF</Color>
+            <Color x:Key="PageBackgroundColorDark">#1E1E1E</Color>
+
+            <Color x:Key="PrimaryTextLight">#000000</Color>
+            <Color x:Key="PrimaryTextDark">#FFFFFF</Color>
+
+            <AppThemeBinding x:Key="PageBackgroundColor"
+                 Light="{StaticResource PageBackgroundColorLight}"
+                 Dark="{StaticResource PageBackgroundColorDark}" />
+
+            <AppThemeBinding x:Key="PrimaryTextColor"
+                 Light="{StaticResource PrimaryTextLight}"
+                 Dark="{StaticResource PrimaryTextDark}" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

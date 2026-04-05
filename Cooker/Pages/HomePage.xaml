@@ -1,34 +1,56 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
+    xmlns:converters="clr-namespace:Cooker.Converters"
     x:Class="Cooker.Pages.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:IsEmptyConverter x:Key="IsEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-        <Grid ColumnDefinitions="*,Auto,Auto">
+    <Grid Padding="20" RowDefinitions="Auto,Auto,Auto,*">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
 
             <Label
                 Text="Cooker Recipes"
                 FontSize="28"
-                FontAttributes="Bold"/>
+                FontAttributes="Bold"
+                VerticalOptions="Center"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
             <Button
                 Grid.Column="1"
-                Text="Settings"
-                Clicked="Settings_Clicked"/>
-
+                Text="Favorites"
+                Clicked="Favorites_Clicked" 
+                TextColor="{DynamicResource PrimaryTextColor}"/>
+            
             <Button
                 Grid.Column="2"
+                Text="Settings"
+                Clicked="Settings_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
+
+            <Button
+                Grid.Column="3"
                 Text="+"
-                Clicked="AddRecipe_Clicked"/>
+                Clicked="AddRecipe_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
         </Grid>
 
         <Picker
+            Grid.Row="1"
             x:Name="CuisinePicker"
             Title="Filter Cuisine"
-            SelectedIndexChanged="CuisineChanged">
+            Margin="0,15,0,0"
+            SelectedIndexChanged="CuisineChanged"
+            TextColor="{DynamicResource PrimaryTextColor}">
+
             <Picker.Items>
                 <x:String>All</x:String>
                 <x:String>Asian</x:String>
@@ -37,15 +59,35 @@
                 <x:String>Chinese</x:String>
                 <x:String>Japanese</x:String>
             </Picker.Items>
+
         </Picker>
 
         <SearchBar
-        Placeholder="Search recipes..."
-        TextChanged="SearchChanged"/>
+            Grid.Row="2"
+            Margin="0,15,0,0"
+            Placeholder="Search recipes..."
+            TextChanged="SearchChanged"/>
+
+        <ActivityIndicator
+            IsRunning="True"
+            IsVisible="False">
+
+            <ActivityIndicator.Triggers>
+                <DataTrigger
+                    TargetType="ActivityIndicator"
+                    Binding="{Binding Source={x:Reference RecipeCollection}, Path=ItemsSource, Converter={StaticResource IsEmptyConverter}}"
+                    Value="True">
+
+                    <Setter Property="IsVisible" Value="True" />
+                </DataTrigger>
+            </ActivityIndicator.Triggers>
+        </ActivityIndicator>
 
         <CollectionView
+            Grid.Row="3"
+            Margin="0,15,0,0"
             x:Name="RecipeCollection"
-            SelectionMode="Single"
+            SelectionMode="Multiple"
             SelectionChanged="RecipeSelected">
 
             <CollectionView.ItemTemplate>
@@ -57,15 +99,29 @@
                             <SwipeItems Mode="Execute">
 
                                 <SwipeItem
-                        Text="Delete"
-                        BackgroundColor="Red"
-                        Invoked="DeleteRecipe"/>
+                                    Text="Delete"
+                                    BackgroundColor="Red"
+                                    Invoked="DeleteRecipe" />
 
                             </SwipeItems>
                         </SwipeView.RightItems>
 
-                        <Border StrokeThickness="1" Padding="10" Margin="5">
-                            <VerticalStackLayout>
+                        <Border
+                            StrokeThickness="1"
+                            Padding="10"
+                            Margin="5">
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    NumberOfTapsRequired="1"
+                                    Tapped="RecipeTapped" />
+
+                                <TapGestureRecognizer
+                                    NumberOfTapsRequired="2"
+                                    Tapped="RecipeLongPressed" />
+                            </Border.GestureRecognizers>
+
+                            <VerticalStackLayout Spacing="8">
 
                                 <Image
                                     Source="{Binding ImagePath}"
@@ -75,7 +131,8 @@
                                 <Label
                                     Text="{Binding Name}"
                                     FontSize="18"
-                                    FontAttributes="Bold"/>
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}"/>
 
                                 <Label
                                     Text="{Binding Cuisine}"
@@ -83,10 +140,35 @@
                                     TextColor="Gray"/>
 
                                 <Button
-                                    Text="❤"
-                                    Clicked="FavoriteClicked"/>
+                                    Text="♡"
+                                    BackgroundColor="White"
+                                    TextColor="Orange"
+                                    BorderColor="Orange"
+                                    BorderWidth="1"
+                                    CornerRadius="10"
+                                    Clicked="FavoriteClicked"
+                                    InputTransparent="False">
+
+                                    <Button.Triggers>
+                                        
+                                        <DataTrigger
+                                            TargetType="Button"
+                                            Binding="{Binding IsFavorite}"
+                                            Value="True">
+
+                                            <Setter 
+                                                Property="Text" 
+                                                Value="❤" />
+                                            <Setter Property="BackgroundColor" Value="Orange" />
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                        
+                                    </Button.Triggers>
+                                    
+                                </Button>
 
                             </VerticalStackLayout>
+
                         </Border>
 
                     </SwipeView>
@@ -96,6 +178,5 @@
 
         </CollectionView>
 
-    </VerticalStackLayout>
-
+    </Grid>
 </ContentPage>

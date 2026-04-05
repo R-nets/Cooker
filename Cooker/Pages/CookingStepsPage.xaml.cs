@@ -6,10 +6,10 @@ namespace Cooker.Pages;
 
 public partial class CookingStepsPage : ContentPage
 {
-    RecipeModel recipe;
-    readonly DatabaseService database;
-
-    readonly List<StepTimerModel> timers = [];
+    private RecipeModel recipe;
+    private readonly DatabaseService database;
+    private bool isTimerMultiDeleteMode = false;
+    private List<StepTimerModel> timers = [];
 
     public CookingStepsPage(RecipeModel model)
     {
@@ -24,15 +24,6 @@ public partial class CookingStepsPage : ContentPage
 
         if (!string.IsNullOrEmpty(recipe.ImagePath))
             RecipeImage.Source = recipe.ImagePath;
-
-        for (int i = 0; i < 24; i++)
-            HourPicker.Items.Add(i.ToString());
-
-        for (int i = 0; i < 60; i++)
-        {
-            MinutePicker.Items.Add(i.ToString());
-            SecondPicker.Items.Add(i.ToString());
-        }
 
         timers = database.GetTimers(recipe.Id);
 
@@ -49,13 +40,12 @@ public partial class CookingStepsPage : ContentPage
 
         string newPath = Path.Combine(FileSystem.AppDataDirectory, photo.FileName);
 
-        using var stream = await photo.OpenReadAsync();
-        using var newStream = File.OpenWrite(newPath);
+        await using var stream = await photo.OpenReadAsync();
+        await using var newStream = File.OpenWrite(newPath);
 
         await stream.CopyToAsync(newStream);
 
         recipe.ImagePath = newPath;
-
         RecipeImage.Source = newPath;
     }
 
@@ -64,39 +54,42 @@ public partial class CookingStepsPage : ContentPage
         if (recipe.Id == 0)
         {
             recipe.Name = NameEntry?.Text ?? "New Recipe";
-            recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? "";
-            recipe.Ingredients = IngredientsEditor?.Text ?? "";
-            recipe.Steps = StepsEditor?.Text ?? "";
+            recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? string.Empty;
+            recipe.Ingredients = IngredientsEditor?.Text ?? string.Empty;
+            recipe.Steps = StepsEditor?.Text ?? string.Empty;
 
             database.SaveRecipe(recipe);
 
             recipe = database.GetRecipes().Last();
         }
 
-        if (HourPicker.SelectedIndex == -1 &&
-            MinutePicker.SelectedIndex == -1 &&
-            SecondPicker.SelectedIndex == -1)
-        {
-            await DisplayAlertAsync("Error", "Please select time", "OK");
-            return;
-        }
+        bool hasHours = int.TryParse(HourEntry.Text, out int hours);
+        bool hasMinutes = int.TryParse(MinuteEntry.Text, out int minutes);
+        bool hasSeconds = int.TryParse(SecondEntry.Text, out int seconds);
 
-        int hours = HourPicker.SelectedIndex < 0 ? 0 : HourPicker.SelectedIndex;
-        int minutes = MinutePicker.SelectedIndex < 0 ? 0 : MinutePicker.SelectedIndex;
-        int seconds = SecondPicker.SelectedIndex < 0 ? 0 : SecondPicker.SelectedIndex;
+        if (!hasHours)
+            hours = 0;
+
+        if (!hasMinutes)
+            minutes = 0;
+
+        if (!hasSeconds)
+            seconds = 0;
 
         int totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
 
         if (totalSeconds <= 0)
         {
-            await DisplayAlertAsync("Error", "Timer must be greater than 0", "OK");
+            await DisplayAlertAsync("Error", "Please enter a valid time greater than 0.", "OK");
             return;
         }
 
         var timer = new StepTimerModel
         {
             RecipeId = recipe.Id,
-            StepDescription = StepDescriptionEntry.Text ?? "Cooking Step",
+            StepDescription = string.IsNullOrWhiteSpace(StepDescriptionEntry.Text)
+                ? "Cooking Step"
+                : StepDescriptionEntry.Text,
             TimerSeconds = totalSeconds
         };
 
@@ -107,13 +100,87 @@ public partial class CookingStepsPage : ContentPage
         TimerCollection.ItemsSource = null;
         TimerCollection.ItemsSource = timers;
 
-        await DisplayAlertAsync("Success", "Timer added", "OK");
+        await DisplayAlertAsync("Success", "Timer added successfully.", "OK");
 
-        // Reset UI
-        StepDescriptionEntry.Text = "";
-        HourPicker.SelectedIndex = -1;
-        MinutePicker.SelectedIndex = -1;
-        SecondPicker.SelectedIndex = -1;
+        StepDescriptionEntry.Text = string.Empty;
+        HourEntry.Text = string.Empty;
+        MinuteEntry.Text = string.Empty;
+        SecondEntry.Text = string.Empty;
+    }
+
+    async void DeleteTimer_Clicked(object sender, EventArgs e)
+    {
+        if (sender is Button btn &&
+            btn.CommandParameter is StepTimerModel timer)
+        {
+            bool confirm = await DisplayAlertAsync(
+                "Delete Timer",
+                "Are you sure you want to delete this timer?",
+                "Yes",
+                "No");
+
+            if (!confirm)
+                return;
+
+            database.DeleteTimer(timer);
+
+            timers.Remove(timer);
+
+            TimerCollection.ItemsSource = null;
+            TimerCollection.ItemsSource = timers;
+        }
+    }
+
+    void EnableMultiDelete_Clicked(object sender, EventArgs e)
+    {
+        isTimerMultiDeleteMode = true;
+        TimerCollection.SelectionMode = SelectionMode.Multiple;
+    }
+
+    async void DeleteSelectedTimers_Clicked(object sender, EventArgs e)
+    {
+        if (!isTimerMultiDeleteMode)
+        {
+            await DisplayAlertAsync(
+                "Multi Delete",
+                "Please enable multi delete mode first.",
+                "OK");
+            return;
+        }
+
+        if (TimerCollection.SelectedItems.Count == 0)
+        {
+            await DisplayAlertAsync(
+                "No Timers Selected",
+                "Please select at least one timer.",
+                "OK");
+            return;
+        }
+
+        bool confirm = await DisplayAlertAsync(
+            "Delete Timers",
+            $"Delete {TimerCollection.SelectedItems.Count} selected timer(s)?",
+            "Yes",
+            "No");
+
+        if (!confirm)
+            return;
+
+        foreach (var item in TimerCollection.SelectedItems.ToList())
+        {
+            if (item is StepTimerModel timer)
+            {
+                database.DeleteTimer(timer);
+                timers.Remove(timer);
+            }
+        }
+
+        TimerCollection.ItemsSource = null;
+        TimerCollection.ItemsSource = timers;
+
+        TimerCollection.SelectedItems.Clear();
+        TimerCollection.SelectionMode = SelectionMode.None;
+        isTimerMultiDeleteMode = false;
     }
 
     async void SaveRecipe_Clicked(object sender, EventArgs e)

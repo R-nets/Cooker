@@ -2,7 +2,8 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Cooker.Pages.CookingStepsPage">
+    x:Class="Cooker.Pages.CookingStepsPage"
+    BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <ScrollView>
 
@@ -21,7 +22,11 @@
                 x:Name="NameEntry"
                 Placeholder="Recipe Name"/>
 
-            <Picker x:Name="CuisinePicker" Title="Cuisine">
+            <Picker 
+                x:Name="CuisinePicker" 
+                Title="Cuisine"
+                TextColor="{DynamicResource PrimaryTextColor}">
+                
                 <Picker.Items>
                     <x:String>Chinese</x:String>
                     <x:String>Japanese</x:String>
@@ -40,34 +45,106 @@
                 Placeholder="Steps"/>
 
             <Label Text="Add Timer for Step" 
-                   FontAttributes="Bold"/>
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource PrimaryTextColor}"/>
 
             <HorizontalStackLayout Spacing="10">
 
-                <Picker x:Name="HourPicker" 
-                        Title="Hours" 
-                        WidthRequest="90"/>
-                <Picker x:Name="MinutePicker" 
-                        Title="Min" WidthRequest="90"/>
-                <Picker x:Name="SecondPicker" 
-                        Title="Sec" WidthRequest="90"/>
+                <HorizontalStackLayout Spacing="10">
+                    <Entry x:Name="HourEntry"
+                       Placeholder="Hours"
+                       Keyboard="Numeric"
+                       WidthRequest="90"
+                       TextColor="{DynamicResource PrimaryTextColor}"/>
+
+                    <Entry x:Name="MinuteEntry"
+                       Placeholder="Minutes"
+                       Keyboard="Numeric"
+                       WidthRequest="90"
+                       TextColor="{DynamicResource PrimaryTextColor}"/>
+
+                    <Entry x:Name="SecondEntry"
+                       Placeholder="Seconds"
+                       Keyboard="Numeric"
+                       WidthRequest="90"
+                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                    
+                </HorizontalStackLayout>
 
             </HorizontalStackLayout>
 
             <Entry 
                 x:Name="StepDescriptionEntry" 
-                Placeholder="Step description"/>
+                Placeholder="Step description"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
             <Button
                 Text="Add Timer"
-                Clicked="AddTimer_Clicked"/>    
+                Clicked="AddTimer_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
-            <CollectionView 
-                x:Name="TimerCollection"/>
+            <CollectionView x:Name="TimerCollection"
+                             SelectionMode="Multiple">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            StrokeThickness="1"
+                            Padding="10"
+                            Margin="5">
+
+                            <VerticalStackLayout Spacing="5">
+                                
+                                <Label
+                                    Text="{Binding StepDescription}"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="{DynamicResource PrimaryTextColor}"/>
+
+                                <Label
+                                    Text="{Binding TimerSeconds, StringFormat='Time: {0} seconds'}"
+                                    FontSize="14"
+                                    TextColor="Gray"/>
+
+                                <Button
+                                    Text="Delete Timer"
+                                    BackgroundColor="Red"
+                                    TextColor="{DynamicResource PrimaryTextColor}"
+                                    CommandParameter="{Binding .}"
+                                    Clicked="DeleteTimer_Clicked"/>
+                                
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+
+            <HorizontalStackLayout
+                Margin="0,10,0,0"
+                Spacing="10">
+
+                <Button Text="Enable Multi Delete"
+                    Clicked="EnableMultiDelete_Clicked"
+                    BackgroundColor="DarkRed"
+                    TextColor="{DynamicResource PrimaryTextColor}" />
+
+                <Button Text="Delete Selected Timers"
+                    Clicked="DeleteSelectedTimers_Clicked"
+                    BackgroundColor="Red"
+                    TextColor="{DynamicResource PrimaryTextColor}" />
+            </HorizontalStackLayout>
+
+            <Label Text="Tap Enable Multi Delete, then select multiple timers below."
+               FontSize="12"
+               TextColor="Gray" />
 
             <Button 
                 Text="Save Recipe" 
-                Clicked="SaveRecipe_Clicked"/>
+                Clicked="SaveRecipe_Clicked"
+                TextColor="{DynamicResource PrimaryTextColor}"/>
 
         </VerticalStackLayout>
 
