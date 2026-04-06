@@ -1,12 +1,17 @@
+#if ANDROID
+using Cooker.Platforms.Android;
+#endif
 using Cooker.Models;
 using Cooker.Services;
 
 namespace Cooker.Pages;
 
+
 public partial class FavoriteRecipePage : ContentPage
 {
     readonly DatabaseService database = new();
-    readonly INotificationService notificationService;
+    INotificationService? 
+        notificationService;
 
     public FavoriteRecipePage()
     {
@@ -29,16 +34,20 @@ public partial class FavoriteRecipePage : ContentPage
     }
 
     async void RecipeSelected(object sender, SelectionChangedEventArgs e)
-{
-    if (e.CurrentSelection.Count == 0)
-        return;
+    {
+        if (e.CurrentSelection.Count == 0)
+            return;
 
-    if (e.CurrentSelection[0] is not RecipeModel selectedRecipe)
-        return;
+        if (e.CurrentSelection[0] is not RecipeModel selectedRecipe)
+            return;
 
-    FavoriteCollection.SelectedItem = null;
+        if (sender is CollectionView collectionView)
+            collectionView.SelectedItem = null;
 
-    await Navigation.PushAsync(
-        new DishDetailsPage(selectedRecipe, notificationService));
-}
+        if (notificationService != null)
+        {
+            await Navigation.PushAsync(
+                new DishDetailsPage(selectedRecipe, notificationService));
+        }
+    }
 }

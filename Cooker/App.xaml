@@ -17,13 +17,6 @@
             <Color x:Key="PrimaryTextLight">#000000</Color>
             <Color x:Key="PrimaryTextDark">#FFFFFF</Color>
 
-            <AppThemeBinding x:Key="PageBackgroundColor"
-                 Light="{StaticResource PageBackgroundColorLight}"
-                 Dark="{StaticResource PageBackgroundColorDark}" />
-
-            <AppThemeBinding x:Key="PrimaryTextColor"
-                 Light="{StaticResource PrimaryTextLight}"
-                 Dark="{StaticResource PrimaryTextDark}" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

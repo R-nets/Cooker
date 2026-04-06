@@ -4,7 +4,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.DishDetailsPage"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
     <ScrollView>
 
@@ -19,7 +20,8 @@
                 x:Name="DishName"
                 FontSize="28"
                 FontAttributes="Bold"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label
                 x:Name="CuisineLabel"
@@ -29,38 +31,45 @@
                 Text="Ingredients"
                 FontAttributes="Bold"
                 FontSize="18"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label 
                 x:Name="IngredientsLabel"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label
                 Text="Cooking Steps"
                 FontAttributes="Bold"
                 FontSize="18"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label 
                 x:Name="StepsLabel"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Button
                 Text="Copy Recipe Details"
                 Clicked="CopyRecipe_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Button
                 Text="Restart Recipe"
                 BackgroundColor="Orange"
-                TextColor="{DynamicResource PrimaryTextColor}"
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" 
                 Clicked="RestartRecipe_Clicked"/>
 
             <Label
                 Text="Timers"
                 FontAttributes="Bold"
                 FontSize="18"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <CollectionView 
                 x:Name="TimerCollection">
@@ -76,8 +85,8 @@
             <Button
                 Text="Edit Recipe"
                 Clicked="EditRecipe_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
-
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

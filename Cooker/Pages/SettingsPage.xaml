@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.SettingsPage"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
     <VerticalStackLayout
         Padding="20"
@@ -13,13 +14,15 @@
             Text="Settings"
             FontSize="28"
             FontAttributes="Bold"
-            TextColor="{DynamicResource PrimaryTextColor}"/>
+            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                        Dark={StaticResource PrimaryTextDark}}" />
 
         <HorizontalStackLayout>
 
             <Label 
                 Text="Notifications"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Switch
                 x:Name="NotificationSwitch"
@@ -31,7 +34,8 @@
 
             <Label 
                 Text="Timers Vibration"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
             <Switch
                 x:Name="VibrationSwitch"
                 Toggled="VibrationChanged"/>
@@ -44,13 +48,15 @@
                 Text="Appearance"
                 FontSize="18"
                 FontAttributes="Bold" 
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Picker
                 x:Name="ThemePicker"
                 Title="Choose Theme"
                 SelectedIndexChanged="ThemePicker_SelectedIndexChanged"
-                TextColor="{DynamicResource PrimaryTextColor}">
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" >
 
                 <Picker.Items>
                     <x:String>Light</x:String>
@@ -63,7 +69,8 @@
             <Button Text="Choose Background Image"
                 Clicked="ChooseBackground_Clicked"
                 IsVisible="True" 
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
             
 
         </HorizontalStackLayout>

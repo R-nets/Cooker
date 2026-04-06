@@ -1,5 +1,7 @@
-namespace Cooker.Pages;
+using System.Linq;
 using Microsoft.Maui.Storage;
+
+namespace Cooker.Pages;
 
 public partial class SettingsPage : ContentPage
 {
@@ -57,7 +59,12 @@ public partial class SettingsPage : ContentPage
             return;
         }
 
-        var photo = await MediaPicker.Default.PickPhotoAsync();
+        var photos = await MediaPicker.Default.PickPhotosAsync();
+
+        var photo = photos?.FirstOrDefault();
+
+        if (photo == null)
+            return;
 
         if (photo == null)
             return;

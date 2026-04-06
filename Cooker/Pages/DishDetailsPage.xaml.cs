@@ -18,7 +18,9 @@ public partial class DishDetailsPage : ContentPage
     {
         InitializeComponent();
 
-        recipe = model ?? new RecipeModel();
+        recipe = model;
+        BindingContext = recipe;
+
         notificationService = service;
         database = new DatabaseService();
 
@@ -35,7 +37,7 @@ public partial class DishDetailsPage : ContentPage
 
     void LoadTimers()
     {
-        timers = database.GetTimers(recipe.Id) ?? [];
+        timers = database.GetTimersByRecipe(recipe.Id) ?? [];
 
         TimerCollection.ItemsSource = null;
         TimerCollection.ItemsSource = timers;

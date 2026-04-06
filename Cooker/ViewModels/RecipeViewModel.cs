@@ -18,7 +18,8 @@ public class RecipeViewModel
 
         database = new DatabaseService();
 
-        Recipes = new ObservableCollection<RecipeModel>(database.GetRecipes());
+        Recipes = new ObservableCollection<RecipeModel>(
+                    database.GetRecipes());
     }
 
     public void Refresh()

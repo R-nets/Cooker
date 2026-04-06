@@ -1,21 +1,23 @@
 using Cooker.Models;
 using Cooker.Services;
+using Cooker.ViewModels;
 using Microsoft.Maui.Storage;
+using System.Collections.ObjectModel;
 
 namespace Cooker.Pages;
 
 public partial class CookingStepsPage : ContentPage
 {
-    private RecipeModel recipe;
+    readonly RecipeModel recipe;
     private readonly DatabaseService database;
-    private bool isTimerMultiDeleteMode = false;
-    private List<StepTimerModel> timers = [];
+    bool isTimerMultiDeleteMode = false;
+    ObservableCollection<StepTimerModel> timers = [];
 
     public CookingStepsPage(RecipeModel model)
     {
         InitializeComponent();
 
-        recipe = model ?? throw new ArgumentNullException(nameof(model));
+        recipe = model ?? new RecipeModel();
         database = new DatabaseService();
 
         NameEntry.Text = recipe.Name ?? string.Empty;
@@ -25,7 +27,8 @@ public partial class CookingStepsPage : ContentPage
         if (!string.IsNullOrEmpty(recipe.ImagePath))
             RecipeImage.Source = recipe.ImagePath;
 
-        timers = database.GetTimers(recipe.Id);
+        timers = new ObservableCollection<StepTimerModel>(
+        database.GetTimersByRecipe(recipe.Id));
 
         TimerCollection.ItemsSource = timers;
     }
@@ -59,8 +62,6 @@ public partial class CookingStepsPage : ContentPage
             recipe.Steps = StepsEditor?.Text ?? string.Empty;
 
             database.SaveRecipe(recipe);
-
-            recipe = database.GetRecipes().Last();
         }
 
         bool hasHours = int.TryParse(HourEntry.Text, out int hours);
@@ -87,9 +88,7 @@ public partial class CookingStepsPage : ContentPage
         var timer = new StepTimerModel
         {
             RecipeId = recipe.Id,
-            StepDescription = string.IsNullOrWhiteSpace(StepDescriptionEntry.Text)
-                ? "Cooking Step"
-                : StepDescriptionEntry.Text,
+            StepDescription = StepDescriptionEntry.Text ?? "",
             TimerSeconds = totalSeconds
         };
 
@@ -133,8 +132,21 @@ public partial class CookingStepsPage : ContentPage
 
     void EnableMultiDelete_Clicked(object sender, EventArgs e)
     {
-        isTimerMultiDeleteMode = true;
-        TimerCollection.SelectionMode = SelectionMode.Multiple;
+        isTimerMultiDeleteMode = !isTimerMultiDeleteMode;
+
+        if (isTimerMultiDeleteMode)
+        {
+            TimerCollection.SelectionMode = SelectionMode.Multiple;
+            MultiDeleteButton.Text = "Disable Multi Delete";
+            MultiDeleteButton.BackgroundColor = Colors.IndianRed;
+        }
+        else
+        {
+            TimerCollection.SelectionMode = SelectionMode.None;
+            TimerCollection.SelectedItems.Clear();
+            MultiDeleteButton.Text = "Enable Multi Delete";
+            MultiDeleteButton.BackgroundColor = Colors.LightBlue;
+        }
     }
 
     async void DeleteSelectedTimers_Clicked(object sender, EventArgs e)
@@ -185,6 +197,8 @@ public partial class CookingStepsPage : ContentPage
 
     async void SaveRecipe_Clicked(object sender, EventArgs e)
     {
+        var database = new DatabaseService();
+
         recipe.Name = NameEntry?.Text ?? string.Empty;
         recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? string.Empty;
         recipe.Ingredients = IngredientsEditor?.Text ?? string.Empty;
@@ -192,6 +206,17 @@ public partial class CookingStepsPage : ContentPage
 
         database.SaveRecipe(recipe);
 
+        foreach (var timer in timers)
+        {
+            timer.RecipeId = recipe.Id;
+            database.SaveTimer(timer);
+        }
+
+        RecipeViewModel.Current.Refresh();
+
+        await DisplayAlertAsync("Saved", "Recipe saved successfully", "OK");
+
         await Navigation.PopAsync();
     }
+
 }

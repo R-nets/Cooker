@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.CookingStepsPage"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
     <ScrollView>
 
@@ -25,7 +26,8 @@
             <Picker 
                 x:Name="CuisinePicker" 
                 Title="Cuisine"
-                TextColor="{DynamicResource PrimaryTextColor}">
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" >
                 
                 <Picker.Items>
                     <x:String>Chinese</x:String>
@@ -46,7 +48,8 @@
 
             <Label Text="Add Timer for Step" 
                    FontAttributes="Bold"
-                   TextColor="{DynamicResource PrimaryTextColor}"/>
+                   TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                               Dark={StaticResource PrimaryTextDark}}" />
 
             <HorizontalStackLayout Spacing="10">
 
@@ -55,19 +58,22 @@
                        Placeholder="Hours"
                        Keyboard="Numeric"
                        WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                       TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                   Dark={StaticResource PrimaryTextDark}}" />
 
                     <Entry x:Name="MinuteEntry"
                        Placeholder="Minutes"
                        Keyboard="Numeric"
                        WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                       TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                   Dark={StaticResource PrimaryTextDark}}" />
 
                     <Entry x:Name="SecondEntry"
                        Placeholder="Seconds"
                        Keyboard="Numeric"
                        WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                       TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                   Dark={StaticResource PrimaryTextDark}}" />
                     
                 </HorizontalStackLayout>
 
@@ -76,12 +82,14 @@
             <Entry 
                 x:Name="StepDescriptionEntry" 
                 Placeholder="Step description"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                       TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                   Dark={StaticResource PrimaryTextDark}}" />
 
             <Button
                 Text="Add Timer"
                 Clicked="AddTimer_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                       TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                   Dark={StaticResource PrimaryTextDark}}" />
 
             <CollectionView x:Name="TimerCollection"
                              SelectionMode="Multiple">
@@ -99,7 +107,8 @@
                                     Text="{Binding StepDescription}"
                                     FontAttributes="Bold"
                                     FontSize="16"
-                                    TextColor="{DynamicResource PrimaryTextColor}"/>
+                                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                                Dark={StaticResource PrimaryTextDark}}" />
 
                                 <Label
                                     Text="{Binding TimerSeconds, StringFormat='Time: {0} seconds'}"
@@ -109,7 +118,8 @@
                                 <Button
                                     Text="Delete Timer"
                                     BackgroundColor="Red"
-                                    TextColor="{DynamicResource PrimaryTextColor}"
+                                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                    Dark={StaticResource PrimaryTextDark}}" 
                                     CommandParameter="{Binding .}"
                                     Clicked="DeleteTimer_Clicked"/>
                                 
@@ -126,15 +136,18 @@
                 Margin="0,10,0,0"
                 Spacing="10">
 
-                <Button Text="Enable Multi Delete"
+                <Button x:Name="MultiDeleteButton"
+                    Text="Enable Multi Delete"
                     Clicked="EnableMultiDelete_Clicked"
-                    BackgroundColor="DarkRed"
-                    TextColor="{DynamicResource PrimaryTextColor}" />
+                    BackgroundColor="LightBlue"
+                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                Dark={StaticResource PrimaryTextDark}}" />
 
                 <Button Text="Delete Selected Timers"
                     Clicked="DeleteSelectedTimers_Clicked"
                     BackgroundColor="Red"
-                    TextColor="{DynamicResource PrimaryTextColor}" />
+                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                Dark={StaticResource PrimaryTextDark}}" />
             </HorizontalStackLayout>
 
             <Label Text="Tap Enable Multi Delete, then select multiple timers below."
@@ -144,7 +157,8 @@
             <Button 
                 Text="Save Recipe" 
                 Clicked="SaveRecipe_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" />
 
         </VerticalStackLayout>
 

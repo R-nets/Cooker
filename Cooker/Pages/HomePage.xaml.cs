@@ -31,7 +31,7 @@ public partial class HomePage : ContentPage
 
     async void RecipeSelected(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is Button)
+        if (RecipeCollection.SelectionMode == SelectionMode.None)
             return;
 
         if (e.CurrentSelection.Count == 0)
@@ -137,20 +137,35 @@ public partial class HomePage : ContentPage
         viewModel.DeleteRecipe(item);
     }
 
-    void FavoriteClicked(object sender, EventArgs e)
+    async void FavoriteClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn)
             return;
 
-        if (btn.BindingContext is not RecipeModel recipe)
+        if (btn.CommandParameter is not RecipeModel recipe)
             return;
+
+        RecipeCollection.SelectionMode = SelectionMode.None;
 
         recipe.IsFavorite = !recipe.IsFavorite;
 
-        new DatabaseService().SaveRecipe(recipe);
+        var database = new DatabaseService();
+        database.SaveRecipe(recipe);
 
-        btn.ScaleToAsync(1.2, 100);
-        btn.ScaleToAsync(1.0, 100);
+        btn.InputTransparent = true;
+
+        await btn.ScaleToAsync(1.2, 100);
+        await btn.ScaleToAsync(1.0, 100);
+
+        btn.InputTransparent = false;
+
+        RecipeViewModel.Current?.Refresh();
+
+        await Task.Delay(100);
+
+        RecipeCollection.SelectionMode = isMultiSelectMode
+            ? SelectionMode.Multiple
+            : SelectionMode.Single;
     }
 
     void RecipeTapped(object sender, TappedEventArgs e)

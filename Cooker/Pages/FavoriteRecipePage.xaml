@@ -4,11 +4,16 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Title="Favorite Recipes"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
     <Grid Padding="20">
 
-        <CollectionView x:Name="FavoriteCollection">
+        <CollectionView 
+            x:Name="FavoriteCollection"
+            SelectionMode="Single"
+            SelectionChanged="RecipeSelected">
+            
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Padding="10" Margin="5">
@@ -23,7 +28,8 @@
                                 Text="{Binding Name}"
                                 FontSize="18"
                                 FontAttributes="Bold" 
-                                TextColor="{DynamicResource PrimaryTextColor}"/>
+                                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                            Dark={StaticResource PrimaryTextDark}}" />
 
                             <Label
                                 Text="{Binding Cuisine}"

@@ -10,7 +10,9 @@
             <Label
                 Text="{Binding StepDescription}"
                 FontAttributes="Bold"
-                FontSize="16" />
+                FontSize="16" 
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label
                 Text="{Binding DisplayTime}"
@@ -20,13 +22,9 @@
 
                 <Button
                     Text="Start Timer"
-                    Clicked="StartButton_Clicked" />
-
-                <Button
-                    Text="Delete"
-                    BackgroundColor="Red"
-                    TextColor="White"
-                    Clicked="DeleteButton_Clicked" />
+                    Clicked="StartButton_Clicked" 
+                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                Dark={StaticResource PrimaryTextDark}}" />
 
             </HorizontalStackLayout>
         </VerticalStackLayout>
