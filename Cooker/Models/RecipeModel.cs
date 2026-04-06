@@ -1,13 +1,17 @@
 ﻿using SQLite;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Cooker.Models;
 
-[SQLite.Table("Recipes")]
-public class RecipeModel
+[Table("Recipes")]
+public partial class RecipeModel : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    void OnPropertyChanged([CallerMemberName] string name = "")
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
@@ -22,5 +26,17 @@ public class RecipeModel
 
     public string ImagePath { get; set; } = "";
 
-    public bool IsFavorite { get; set; }
+    bool isFavorite;
+    public bool IsFavorite
+    {
+        get => isFavorite;
+        set
+        {
+            if (isFavorite != value)
+            {
+                isFavorite = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 }

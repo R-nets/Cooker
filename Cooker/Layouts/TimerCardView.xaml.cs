@@ -5,7 +5,7 @@ namespace Cooker.Layouts;
 public partial class TimerCardView : ContentView
 {
     public event EventHandler<StepTimerModel>? StartTimerClicked;
-    public event EventHandler<StepTimerModel>? DeleteTimerClicked;
+    public event EventHandler<StepTimerModel>? PauseTimerClicked;
 
     public TimerCardView()
     {
@@ -17,7 +17,7 @@ public partial class TimerCardView : ContentView
         get
         {
             if (BindingContext is not StepTimerModel timer)
-                return "Timer: 0 second(s)";
+                return "Timer: 0s";
 
             int totalSeconds = timer.TimerSeconds;
 
@@ -25,34 +25,21 @@ public partial class TimerCardView : ContentView
             int minutes = (totalSeconds % 3600) / 60;
             int seconds = totalSeconds % 60;
 
-            List<string> parts = [];
-
-            if (hours > 0)
-                parts.Add($"{hours} hour(s)");
-
-            if (minutes > 0)
-                parts.Add($"{minutes} minute(s)");
-
-            if (seconds > 0 || parts.Count == 0)
-                parts.Add($"{seconds} second(s)");
-
-            return "Timer: " + string.Join(", ", parts);
+            return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
         }
     }
 
-    void StartButton_Clicked(object sender, EventArgs e)
+    void MainButton_Clicked(object sender, EventArgs e)
     {
-        if (BindingContext is StepTimerModel timer)
+        if (BindingContext is not StepTimerModel timer) return;
+
+        if (!timer.IsRunning)
         {
             StartTimerClicked?.Invoke(this, timer);
         }
-    }
-
-    void DeleteButton_Clicked(object sender, EventArgs e)
-    {
-        if (BindingContext is StepTimerModel timer)
+        else
         {
-            DeleteTimerClicked?.Invoke(this, timer);
+            PauseTimerClicked?.Invoke(this, timer);
         }
     }
 }

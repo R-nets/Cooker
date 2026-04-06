@@ -4,36 +4,102 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Title="Favorite Recipes"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
-    <Grid Padding="20">
+    <Grid>
 
-        <CollectionView x:Name="FavoriteCollection">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Padding="10" Margin="5">
-                        <VerticalStackLayout Spacing="8">
+        <Image
+            Source="{Binding BackgroundImage}"
+            Aspect="AspectFit"
+            Opacity="0.25"
+            HorizontalOptions="Center"
+            VerticalOptions="Center" />
 
-                            <Image
-                                Source="{Binding ImagePath}"
-                                HeightRequest="120"
-                                Aspect="AspectFill" />
 
-                            <Label
-                                Text="{Binding Name}"
-                                FontSize="18"
-                                FontAttributes="Bold" 
-                                TextColor="{DynamicResource PrimaryTextColor}"/>
+        <BoxView
+            x:Name="BackgroundOverlay"
+            InputTransparent="True"
+            Opacity="0.6"
+            BackgroundColor="{AppThemeBinding Light=White, Dark=Black}" />
 
-                            <Label
-                                Text="{Binding Cuisine}"
-                                TextColor="Gray" />
+        <Grid Padding="20">
 
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <CollectionView 
+                x:Name="FavoriteCollection"
+                SelectionMode="Single"
+                SelectionChanged="RecipeSelected">
 
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="6" Margin="2">
+
+                            <Grid>
+
+                                <VerticalStackLayout Spacing="1">
+
+                                    <Image
+                                        Source="{Binding ImagePath}"
+                                        HeightRequest="126"
+                                        Aspect="AspectFill" />
+
+                                    <Label
+                                        Text="{Binding Name}"
+                                        FontSize="18"
+                                        FontAttributes="Bold"
+                                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                                            Dark={StaticResource PrimaryTextDark}}" />
+
+                                    <Label
+                                        Text="{Binding Cuisine}"
+                                        TextColor="Gray" />
+
+                                    <ImageButton
+                                        Source="copy.png"
+                                         BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryButtonLight},
+                                                Dark={StaticResource PrimaryTextDark}}"
+                                        Clicked="CopyRecipe_Clicked"
+                                        CommandParameter="{Binding .}" />
+
+                                </VerticalStackLayout>
+
+                                <Button
+                                    WidthRequest="30"
+                                    HeightRequest="30"
+                                    Padding="0"
+                                    VerticalOptions="Start"
+                                    HorizontalOptions="End"
+                                    BackgroundColor="White"
+                                    TextColor="Orange"
+                                    BorderColor="Orange"
+                                    BorderWidth="1"
+                                    CornerRadius="20"
+                                    Clicked="FavoriteClicked"
+                                    CommandParameter="{Binding .}">
+
+                                    <Button.Triggers>
+                                        <DataTrigger
+                                            TargetType="Button"
+                                            Binding="{Binding IsFavorite}"
+                                            Value="True">
+
+                                            <Setter Property="Text" Value="❤" />
+                                            <Setter Property="BackgroundColor" Value="Orange" />
+                                            <Setter Property="TextColor" Value="White" />
+
+                                        </DataTrigger>
+                                    </Button.Triggers>
+
+                                    <Button.Text>♡</Button.Text>
+
+                                </Button>
+
+                            </Grid>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
     </Grid>
 </ContentPage>

@@ -11,8 +11,7 @@ public class IsEmptyConverter : IValueConverter
         {
             return !collection.Cast<object>().Any();
         }
-
-        return true;
+        return false;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

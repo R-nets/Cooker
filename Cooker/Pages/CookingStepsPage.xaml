@@ -3,150 +3,184 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.CookingStepsPage"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+    Title="Cooking Steps Page"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
-    <ScrollView>
+    <Grid>
 
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <Image
+            Source="{Binding BackgroundImage}"
+            Aspect="AspectFit"
+            Opacity="0.25"
+            HorizontalOptions="Center"
+            VerticalOptions="Center" />
 
-            <Image
-                x:Name="RecipeImage"
-                HeightRequest="180"
-                Aspect="AspectFill"/>
 
-            <Button
-                Text="Add Image"
-                Clicked="AddImage_Clicked"/>
+        <BoxView
+            x:Name="BackgroundOverlay"
+            InputTransparent="True"
+            Opacity="0.6"
+            BackgroundColor="{AppThemeBinding Light=White, Dark=Black}" />
 
-            <Entry
-                x:Name="NameEntry"
-                Placeholder="Recipe Name"/>
+        <Grid>
+            <ScrollView>
 
-            <Picker 
-                x:Name="CuisinePicker" 
-                Title="Cuisine"
-                TextColor="{DynamicResource PrimaryTextColor}">
-                
-                <Picker.Items>
-                    <x:String>Chinese</x:String>
-                    <x:String>Japanese</x:String>
-                    <x:String>Italian</x:String>
-                    <x:String>Western</x:String>
-                    <x:String>Indian</x:String>
-                </Picker.Items>
-            </Picker>
+                <VerticalStackLayout Padding="20" Spacing="15">
 
-            <Editor  
-                x:Name="IngredientsEditor"
-                Placeholder="Ingredients"/>
+                    <Image
+                        x:Name="RecipeImage"
+                        HeightRequest="180"
+                        Aspect="AspectFill"/>
 
-            <Editor
-                x:Name="StepsEditor"
-                Placeholder="Steps"/>
+                    <Button
+                        Text="Add Image"
+                        Clicked="AddImage_Clicked"/>
 
-            <Label Text="Add Timer for Step" 
-                   FontAttributes="Bold"
-                   TextColor="{DynamicResource PrimaryTextColor}"/>
+                    <Entry
+                        x:Name="NameEntry"
+                        Placeholder="Recipe Name"/>
 
-            <HorizontalStackLayout Spacing="10">
+                    <Picker 
+                        x:Name="CuisinePicker" 
+                        Title="Cuisine"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" >
 
-                <HorizontalStackLayout Spacing="10">
-                    <Entry x:Name="HourEntry"
-                       Placeholder="Hours"
-                       Keyboard="Numeric"
-                       WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                        <Picker.Items>
+                            <x:String>Chinese</x:String>
+                            <x:String>Japanese</x:String>
+                            <x:String>Italian</x:String>
+                            <x:String>Western</x:String>
+                            <x:String>Indian</x:String>
+                        </Picker.Items>
+                    </Picker>
 
-                    <Entry x:Name="MinuteEntry"
-                       Placeholder="Minutes"
-                       Keyboard="Numeric"
-                       WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
+                    <Editor  
+                        x:Name="IngredientsEditor"
+                        Placeholder="Ingredients"/>
 
-                    <Entry x:Name="SecondEntry"
-                       Placeholder="Seconds"
-                       Keyboard="Numeric"
-                       WidthRequest="90"
-                       TextColor="{DynamicResource PrimaryTextColor}"/>
-                    
-                </HorizontalStackLayout>
+                    <Editor
+                        x:Name="StepsEditor"
+                        Placeholder="Steps"/>
 
-            </HorizontalStackLayout>
+                    <Label Text="Add Timer for Step" 
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                       Dark={StaticResource PrimaryTextDark}}" />
 
-            <Entry 
-                x:Name="StepDescriptionEntry" 
-                Placeholder="Step description"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                    <HorizontalStackLayout Spacing="10">
 
-            <Button
-                Text="Add Timer"
-                Clicked="AddTimer_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                        <HorizontalStackLayout Spacing="10">
+                            <Entry x:Name="HourEntry"
+                               Placeholder="Hours"
+                               Keyboard="Numeric"
+                               WidthRequest="90"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-            <CollectionView x:Name="TimerCollection"
-                             SelectionMode="Multiple">
+                            <Entry x:Name="MinuteEntry"
+                               Placeholder="Minutes"
+                               Keyboard="Numeric"
+                               WidthRequest="90"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border
-                            StrokeThickness="1"
-                            Padding="10"
-                            Margin="5">
+                            <Entry x:Name="SecondEntry"
+                               Placeholder="Seconds"
+                               Keyboard="Numeric"
+                               WidthRequest="90"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-                            <VerticalStackLayout Spacing="5">
-                                
-                                <Label
-                                    Text="{Binding StepDescription}"
-                                    FontAttributes="Bold"
-                                    FontSize="16"
-                                    TextColor="{DynamicResource PrimaryTextColor}"/>
+                        </HorizontalStackLayout>
 
-                                <Label
-                                    Text="{Binding TimerSeconds, StringFormat='Time: {0} seconds'}"
-                                    FontSize="14"
-                                    TextColor="Gray"/>
+                    </HorizontalStackLayout>
 
-                                <Button
-                                    Text="Delete Timer"
-                                    BackgroundColor="Red"
-                                    TextColor="{DynamicResource PrimaryTextColor}"
-                                    CommandParameter="{Binding .}"
-                                    Clicked="DeleteTimer_Clicked"/>
-                                
-                            </VerticalStackLayout>
+                    <Entry 
+                        x:Name="StepDescriptionEntry" 
+                        Placeholder="Step description"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-                        </Border>
+                    <Button
+                        Text="Add Timer"
+                        Clicked="AddTimer_Clicked"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
+                    <CollectionView x:Name="TimerCollection"
+                                     SelectionMode="None">
 
-            </CollectionView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    StrokeThickness="1"
+                                    Padding="10"
+                                    Margin="5">
 
-            <HorizontalStackLayout
-                Margin="0,10,0,0"
-                Spacing="10">
+                                    <VerticalStackLayout Spacing="5">
 
-                <Button Text="Enable Multi Delete"
-                    Clicked="EnableMultiDelete_Clicked"
-                    BackgroundColor="DarkRed"
-                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                        <Label
+                                            Text="{Binding StepDescription}"
+                                            FontAttributes="Bold"
+                                            FontSize="16"
+                                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                                        Dark={StaticResource PrimaryTextDark}}" />
 
-                <Button Text="Delete Selected Timers"
-                    Clicked="DeleteSelectedTimers_Clicked"
-                    BackgroundColor="Red"
-                    TextColor="{DynamicResource PrimaryTextColor}" />
-            </HorizontalStackLayout>
+                                        <Label
+                                            Text="{Binding TimerSeconds, StringFormat='Time: {0} seconds'}"
+                                            FontSize="14"
+                                            TextColor="Gray"/>
 
-            <Label Text="Tap Enable Multi Delete, then select multiple timers below."
-               FontSize="12"
-               TextColor="Gray" />
+                                        <Button
+                                            Text="Delete Timer"
+                                            BackgroundColor="Red"
+                                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                            Dark={StaticResource PrimaryTextDark}}" 
+                                            CommandParameter="{Binding .}"
+                                            Clicked="DeleteTimer_Clicked"/>
 
-            <Button 
-                Text="Save Recipe" 
-                Clicked="SaveRecipe_Clicked"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
+                                    </VerticalStackLayout>
 
-        </VerticalStackLayout>
+                                </Border>
 
-    </ScrollView>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                    </CollectionView>
+
+                    <HorizontalStackLayout
+                        Margin="0,10,0,0"
+                        Spacing="10">
+
+                        <Button x:Name="MultiDeleteButton"
+                            Text="Enable Multi Delete"
+                            Clicked="EnableMultiDelete_Clicked"
+                            BackgroundColor="LightBlue"
+                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                        Dark={StaticResource PrimaryTextDark}}" />
+
+                        <Button Text="Delete Selected Timers"
+                            Clicked="DeleteSelectedTimers_Clicked"
+                            BackgroundColor="Red"
+                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                        Dark={StaticResource PrimaryTextDark}}" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="Tap Enable Multi Delete, then select multiple timers below."
+                       FontSize="12"
+                       TextColor="Gray" />
+
+                    <Button 
+                        Text="Save Recipe" 
+                        Clicked="SaveRecipe_Clicked"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
+
+                </VerticalStackLayout>
+
+            </ScrollView>
+        </Grid>
+    </Grid>
 </ContentPage>

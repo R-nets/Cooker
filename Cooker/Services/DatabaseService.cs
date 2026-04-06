@@ -19,7 +19,7 @@ public class DatabaseService
 
     public List<RecipeModel> GetRecipes()
     {
-        return connection.Table<RecipeModel>().ToList();
+        return [.. connection.Table<RecipeModel>()];
     }
 
     public void SaveRecipe(RecipeModel recipe)
@@ -35,11 +35,9 @@ public class DatabaseService
         connection.Delete(recipe);
     }
 
-    public List<StepTimerModel> GetTimers(int recipeId)
+    public List<StepTimerModel> GetTimersByRecipe(int recipeId)
     {
-        return connection.Table<StepTimerModel>()
-            .Where(t => t.RecipeId == recipeId)
-            .ToList();
+        return [.. connection.Table<StepTimerModel>().Where(t => t.RecipeId == recipeId)];
     }
 
     public void SaveTimer(StepTimerModel timer)

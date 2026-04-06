@@ -2,33 +2,55 @@
 <ContentView
     x:Class="Cooker.Layouts.TimerCardView"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Cooker.Converters">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:PlayPauseImageConverter x:Key="PlayPauseImageConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
 
     <Border Padding="10" Margin="0,5">
+
         <VerticalStackLayout Spacing="10">
 
             <Label
                 Text="{Binding StepDescription}"
                 FontAttributes="Bold"
-                FontSize="16" />
+                FontSize="16"
+                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                            Dark={StaticResource PrimaryTextDark}}" />
 
             <Label
                 Text="{Binding DisplayTime}"
                 TextColor="Gray" />
 
-            <HorizontalStackLayout Spacing="10">
+            <Label
+                Text="{Binding RemainingDisplay}"
+                TextColor="Orange"
+                FontSize="18"
+                HorizontalOptions="Center"/>
 
-                <Button
-                    Text="Start Timer"
-                    Clicked="StartButton_Clicked" />
+            <HorizontalStackLayout HorizontalOptions="Center">
 
-                <Button
-                    Text="Delete"
-                    BackgroundColor="Red"
-                    TextColor="White"
-                    Clicked="DeleteButton_Clicked" />
+                <ImageButton
+                    WidthRequest="26"
+                    HeightRequest="26"
+                    CornerRadius="30"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryButtonLight},
+                            Dark={StaticResource PrimaryTextDark}}"
+                    Clicked="MainButton_Clicked">
+
+                    <ImageButton.Source>
+                        <Binding Path="IsRunning"
+                                 Converter="{StaticResource PlayPauseImageConverter}" />
+                    </ImageButton.Source>
+
+                </ImageButton>
 
             </HorizontalStackLayout>
+
         </VerticalStackLayout>
     </Border>
 </ContentView>

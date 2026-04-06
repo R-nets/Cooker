@@ -1,21 +1,23 @@
 using Cooker.Models;
 using Cooker.Services;
+using Cooker.ViewModels;
 using Microsoft.Maui.Storage;
+using System.Collections.ObjectModel;
 
 namespace Cooker.Pages;
 
 public partial class CookingStepsPage : ContentPage
 {
-    private RecipeModel recipe;
+    readonly RecipeModel recipe;
     private readonly DatabaseService database;
-    private bool isTimerMultiDeleteMode = false;
-    private List<StepTimerModel> timers = [];
+    bool isTimerMultiDeleteMode = false;
+    readonly ObservableCollection<StepTimerModel> timers = [];
 
     public CookingStepsPage(RecipeModel model)
     {
         InitializeComponent();
 
-        recipe = model ?? throw new ArgumentNullException(nameof(model));
+        recipe = model ?? new RecipeModel();
         database = new DatabaseService();
 
         NameEntry.Text = recipe.Name ?? string.Empty;
@@ -25,15 +27,45 @@ public partial class CookingStepsPage : ContentPage
         if (!string.IsNullOrEmpty(recipe.ImagePath))
             RecipeImage.Source = recipe.ImagePath;
 
-        timers = database.GetTimers(recipe.Id);
+        timers = [.. database.GetTimersByRecipe(recipe.Id)];
 
         TimerCollection.ItemsSource = timers;
     }
 
     async void AddImage_Clicked(object sender, EventArgs e)
     {
-        var photos = await MediaPicker.Default.PickPhotosAsync();
-        var photo = photos.FirstOrDefault();
+        string action = await DisplayActionSheetAsync(
+            "Select Image Source",
+            "Cancel",
+            null,
+            "Camera",
+            "Gallery");
+
+        FileResult? photo = null;
+
+        if (action == "Camera")
+        {
+            if (!Preferences.Default.Get("camera", true))
+            {
+                await DisplayAlertAsync("Permission Disabled",
+                    "Enable camera permission in settings first.",
+                    "OK");
+                return;
+            }
+
+            await PermissionHelper.RequestWithExplanation<Permissions.Camera>(
+                "Camera access is needed to take photos.");
+
+            photo = await MediaPicker.Default.CapturePhotoAsync();
+        }
+        else if (action == "Gallery")
+        {
+            await PermissionHelper.RequestWithExplanation<Permissions.Photos>(
+                "Photo access is needed to select images.");
+
+            var photos = await MediaPicker.Default.PickPhotosAsync();
+            photo = photos?.FirstOrDefault();
+        }
 
         if (photo == null)
             return;
@@ -59,8 +91,6 @@ public partial class CookingStepsPage : ContentPage
             recipe.Steps = StepsEditor?.Text ?? string.Empty;
 
             database.SaveRecipe(recipe);
-
-            recipe = database.GetRecipes().Last();
         }
 
         bool hasHours = int.TryParse(HourEntry.Text, out int hours);
@@ -87,9 +117,7 @@ public partial class CookingStepsPage : ContentPage
         var timer = new StepTimerModel
         {
             RecipeId = recipe.Id,
-            StepDescription = string.IsNullOrWhiteSpace(StepDescriptionEntry.Text)
-                ? "Cooking Step"
-                : StepDescriptionEntry.Text,
+            StepDescription = StepDescriptionEntry.Text ?? "",
             TimerSeconds = totalSeconds
         };
 
@@ -101,6 +129,8 @@ public partial class CookingStepsPage : ContentPage
         TimerCollection.ItemsSource = timers;
 
         await DisplayAlertAsync("Success", "Timer added successfully.", "OK");
+        await this.FadeToAsync(0.8, 100);
+        await this.FadeToAsync(1, 150);
 
         StepDescriptionEntry.Text = string.Empty;
         HourEntry.Text = string.Empty;
@@ -133,8 +163,21 @@ public partial class CookingStepsPage : ContentPage
 
     void EnableMultiDelete_Clicked(object sender, EventArgs e)
     {
-        isTimerMultiDeleteMode = true;
-        TimerCollection.SelectionMode = SelectionMode.Multiple;
+        isTimerMultiDeleteMode = !isTimerMultiDeleteMode;
+
+        if (isTimerMultiDeleteMode)
+        {
+            TimerCollection.SelectionMode = SelectionMode.Multiple;
+            MultiDeleteButton.Text = "Disable Multi Delete";
+            MultiDeleteButton.BackgroundColor = Colors.IndianRed;
+        }
+        else
+        {
+            TimerCollection.SelectionMode = SelectionMode.None;
+            TimerCollection.SelectedItems.Clear();
+            MultiDeleteButton.Text = "Enable Multi Delete";
+            MultiDeleteButton.BackgroundColor = Colors.LightBlue;
+        }
     }
 
     async void DeleteSelectedTimers_Clicked(object sender, EventArgs e)
@@ -185,6 +228,8 @@ public partial class CookingStepsPage : ContentPage
 
     async void SaveRecipe_Clicked(object sender, EventArgs e)
     {
+        var database = new DatabaseService();
+
         recipe.Name = NameEntry?.Text ?? string.Empty;
         recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? string.Empty;
         recipe.Ingredients = IngredientsEditor?.Text ?? string.Empty;
@@ -192,6 +237,26 @@ public partial class CookingStepsPage : ContentPage
 
         database.SaveRecipe(recipe);
 
+        foreach (var timer in timers)
+        {
+            timer.RecipeId = recipe.Id;
+            database.SaveTimer(timer);
+        }
+
+        RecipeViewModel.Current?.Refresh();
+
+        await DisplayAlertAsync("Saved", "Recipe saved successfully", "OK");
+
         await Navigation.PopAsync();
     }
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        App.ApplyBackgroundToPage(this);
+
+        BackgroundOverlay.IsVisible = 
+            Preferences.Default.ContainsKey("background_image");
+    }
+
 }

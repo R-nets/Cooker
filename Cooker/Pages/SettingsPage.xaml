@@ -3,71 +3,102 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.SettingsPage"
-    BackgroundColor="{DynamicResource PageBackgroundColor}">
+        Title="Settings Page"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
+                                       Dark={StaticResource PageBackgroundColorDark}}">
 
-    <VerticalStackLayout
-        Padding="20"
-        Spacing="15">
+    <Grid>
 
-        <Label
-            Text="Settings"
-            FontSize="28"
-            FontAttributes="Bold"
-            TextColor="{DynamicResource PrimaryTextColor}"/>
+        <Image
+            Source="{Binding BackgroundImage}"
+            Aspect="AspectFit"
+            Opacity="0.25"
+            HorizontalOptions="Center"
+            VerticalOptions="Center" />
 
-        <HorizontalStackLayout>
+        <BoxView
+            x:Name="BackgroundOverlay"
+            InputTransparent="True"
+            Opacity="0.6"
+            BackgroundColor="{AppThemeBinding Light=White, Dark=Black}" />
 
-            <Label 
-                Text="Notifications"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
-
-            <Switch
-                x:Name="NotificationSwitch"
-                Toggled="NotificationChanged"/>
-
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout>
-
-            <Label 
-                Text="Timers Vibration"
-                TextColor="{DynamicResource PrimaryTextColor}"/>
-            <Switch
-                x:Name="VibrationSwitch"
-                Toggled="VibrationChanged"/>
-
-        </HorizontalStackLayout>
-
-        <HorizontalStackLayout>
-
-            <Label
-                Text="Appearance"
-                FontSize="18"
-                FontAttributes="Bold" 
-                TextColor="{DynamicResource PrimaryTextColor}"/>
-
-            <Picker
-                x:Name="ThemePicker"
-                Title="Choose Theme"
-                SelectedIndexChanged="ThemePicker_SelectedIndexChanged"
-                TextColor="{DynamicResource PrimaryTextColor}">
-
-                <Picker.Items>
-                    <x:String>Light</x:String>
-                    <x:String>Dark</x:String>
-                    <x:String>custom</x:String>
-                </Picker.Items>
-                
-            </Picker>
+        <Grid Padding="20">
             
-            <Button Text="Choose Background Image"
-                Clicked="ChooseBackground_Clicked"
-                IsVisible="True" 
-                TextColor="{DynamicResource PrimaryTextColor}"/>
-            
+            <VerticalStackLayout
+                Padding="20"
+                Spacing="15">
 
-        </HorizontalStackLayout>
+                <HorizontalStackLayout>
 
-    </VerticalStackLayout>
+                    <Label 
+                        Text="Notifications"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
 
+                    <Switch
+                        x:Name="NotificationSwitch"
+                        Toggled="NotificationChanged"/>
+
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+
+                    <Label 
+                        Text="Timers Vibration"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
+                    <Switch
+                        x:Name="VibrationSwitch"
+                        Toggled="VibrationChanged"/>
+
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+
+                    <Label 
+                        Text="Camera permission"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
+                    <Switch
+                        x:Name="CameraSwitch"
+                        Toggled="CameraChanged" />
+
+                </HorizontalStackLayout>
+
+                <VerticalStackLayout Spacing="10">
+
+                    <Label
+                        Text="Appearance"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                            Dark={StaticResource PrimaryTextDark}}"/>
+
+                    <Picker
+                        x:Name="ThemePicker"
+                        Title="Choose Theme"
+                        SelectedIndexChanged="ThemePicker_SelectedIndexChanged"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" >
+
+                        <Picker.Items>
+                            <x:String>Light</x:String>
+                            <x:String>Dark</x:String>
+                        </Picker.Items>
+
+                    </Picker>
+
+                    <Button
+                        Text="Set Background Image"
+                        Clicked="ChooseBackground_Clicked" />
+
+                    <Button
+                        Text="Reset to Default Background"
+                        Clicked="ResetBackground_Clicked" />
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
 </ContentPage>
