@@ -2,6 +2,7 @@ using CommunityToolkit.Maui.Alerts;
 using Cooker.Layouts;
 using Cooker.Models;
 using Cooker.Services;
+using System.Collections.ObjectModel;
 
 namespace Cooker.Pages;
 
@@ -13,6 +14,8 @@ public partial class DishDetailsPage : ContentPage
     CancellationTokenSource? timerToken;
     List<StepTimerModel> timers = [];
     readonly List<StepTimerModel> completedTimers = [];
+    int currentStepIndex = 0;
+    bool isSequentialMode = false;
 
     public DishDetailsPage(RecipeModel model, INotificationService service)
     {
@@ -33,6 +36,7 @@ public partial class DishDetailsPage : ContentPage
             DishImage.Source = recipe.ImagePath;
 
         LoadTimers();
+        RefreshTimerView();
     }
 
     void LoadTimers()
@@ -41,6 +45,15 @@ public partial class DishDetailsPage : ContentPage
 
         TimerCollection.ItemsSource = null;
         TimerCollection.ItemsSource = timers;
+    }
+
+    void RefreshTimerView()
+    {
+        TimerCollection.ItemsSource = null;
+        TimerCollection.ItemsSource = timers
+            .Where(t => !t.IsCompleted)
+            .OrderBy(t => t.StepIndex)
+            .ToList();
     }
 
     void TimerCard_Loaded(object sender, EventArgs e)
@@ -57,6 +70,17 @@ public partial class DishDetailsPage : ContentPage
 
     async void OnStartTimer(object? sender, StepTimerModel timer)
     {
+        if (timers.IndexOf(timer) != 0 && completedTimers.Count == 0)
+        {
+            bool proceed = await DisplayAlertAsync(
+                "Warning",
+                "You are not starting from Step 1.",
+                "Continue",
+                "Cancel");
+
+            if (!proceed) return;
+        }
+
         await RunTimer(timer);
         await this.FadeToAsync(0.7, 150);
         await this.FadeToAsync(1, 200);
@@ -69,51 +93,79 @@ public partial class DishDetailsPage : ContentPage
 
     async Task RunTimer(StepTimerModel timer)
     {
+        // 1. Starting state
         timer.IsRunning = true;
-
-        // Only reset if first start
-        if (timer.RemainingSeconds <= 0)
-            timer.RemainingSeconds = timer.TimerSeconds;
-
         timerToken = new CancellationTokenSource();
 
         await Toast.Make($"Timer started: {timer.TimerSeconds} seconds").Show();
 
+        // 2. Countdown loop
         while (timer.RemainingSeconds > 0 && !timerToken.IsCancellationRequested)
         {
             await Task.Delay(1000);
-            timer.RemainingSeconds--;   // updates UI automatically
+            timer.RemainingSeconds--;
         }
 
+        // 3. Handle cancellation first
+        if (timerToken.IsCancellationRequested)
+        {
+            timer.IsRunning = false;
+            return;
+        }
+
+        // 4. Stopping state
         timer.IsRunning = false;
 
-        if (timer.RemainingSeconds <= 0)
-        {
-            if (Preferences.Default.Get("vibration", true) && DeviceInfo.Platform != DevicePlatform.WinUI)
-            {
-                Vibration.Default.Vibrate();
-            }
+        // 5.1 FlashTorch for instant feedback - native structure
+        await DishDetailsPage.FlashTorch();
 
+        // 5.2 Vibration - native structure
+        if (Preferences.Default.Get("vibration", true) &&
+            DeviceInfo.Platform != DevicePlatform.WinUI)
+        {
+            try
+            {
+                Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(300));
+            }
+            catch (FeatureNotSupportedException)
+            {
+                // Safe fallback (do nothing)
+            }
+        }
+        ;
+
+        // 5.3 Notification if enabled in SettingsPage - native structure
+        if (Preferences.Default.Get("notifications", true))
+        {
             notificationService.SendNotification(
                 "Cooking Timer Finished",
                 timer.StepDescription,
                 0);
+        }
 
-            await Toast.Make($"Finished: {timer.StepDescription}").Show();
+        await DisplayAlertAsync(
+            "⏰ Time's Up!",
+            timer.StepDescription,
+            "OK");
 
-            completedTimers.Add(timer);
-            timers.Remove(timer);
+        await Toast.Make($"Finished: {timer.StepDescription}").Show();
 
-            // Only refresh ONCE when removing item
-            TimerCollection.ItemsSource = timers;
+        // Mark as completed
+        timer.IsCompleted = true;
+        database.SaveTimer(timer);
 
-            if (timers.Count == 0)
-            {
-                await DisplayAlertAsync("Recipe Completed 🎉",
-                    "You completed all steps.", "OK");
+        // Refresh UI
+        RefreshTimerView();
 
-                RestartRecipe();
-            }
+        // 6. Check completion
+        if (!isSequentialMode && timers.All(t => t.IsCompleted))
+        {
+            await DisplayAlertAsync(
+                "Recipe Completed 🎉",
+                "You completed all steps.",
+                "OK");
+
+            RestartRecipe();
         }
     }
 
@@ -123,6 +175,35 @@ public partial class DishDetailsPage : ContentPage
         timer.IsRunning = false;
     }
 
+    static async Task FlashTorch()
+    {
+        try
+        {
+            // Respect to the SettingsPage toggle
+            if (!Preferences.Default.Get("torch", true))
+                return;
+
+            // Request camera permission if not granted
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Camera>();
+            }
+
+            if (status != PermissionStatus.Granted)
+                return;
+
+            await Flashlight.Default.TurnOnAsync();
+            await Task.Delay(200);
+            await Flashlight.Default.TurnOffAsync();
+        }
+        catch
+        {
+            // Device may not support flashlight or permission denied
+        }
+    }
+
     async void ResumeTimer(StepTimerModel timer)
     {
         await RunTimer(timer);
@@ -130,8 +211,15 @@ public partial class DishDetailsPage : ContentPage
 
     void RestartRecipe()
     {
+        foreach (var t in timers)
+        {
+            t.IsCompleted = false;
+            t.RemainingSeconds = t.TimerSeconds;
+            t.IsRunning = false;
+        }
+
         completedTimers.Clear();
-        LoadTimers();
+        RefreshTimerView();
     }
 
     async void RestartRecipe_Clicked(object sender, EventArgs e)
@@ -148,6 +236,110 @@ public partial class DishDetailsPage : ContentPage
         RestartRecipe();
 
         await Toast.Make("Recipe restarted").Show();
+    }
+
+    async void StartSequentialCooking_Clicked(object sender, EventArgs e)
+    {
+        if (timers.Count == 0) return;
+
+        isSequentialMode = true;
+        currentStepIndex = 0;
+
+        await RunStepSequence();
+
+        isSequentialMode = false;
+    }
+
+    async Task RunStepSequence()
+    {
+        var remainingTimers = timers
+            .Where(t => !t.IsCompleted)
+            .OrderBy(t => t.StepIndex)
+            .ToList();
+
+        currentStepIndex = 0;
+
+        while (currentStepIndex < remainingTimers.Count)
+        {
+            var timer = remainingTimers[currentStepIndex];
+
+            await RunTimer(timer);
+            RefreshTimerView();
+
+            bool isLastStep = currentStepIndex == remainingTimers.Count - 1;
+
+            string action;
+
+            if (isLastStep)
+            {
+                action = await DisplayActionSheetAsync(
+                    "Final Step",
+                    "Cancel",
+                    null,
+                    "Finish Recipe",
+                    "Redo Step",
+                    "Add 10 Minutes"
+                );
+            }
+            else
+            {
+                action = await DisplayActionSheetAsync(
+                    "Next Action",
+                    "Cancel",
+                    null,
+                    "Next Step",
+                    "Redo Step",
+                    "Add 10 Minutes",
+                    "Skip Step"
+                );
+            }
+
+            if (action == "Redo Step")
+            {
+                continue;
+            }
+            else if (action == "Add 10 Minutes")
+            {
+                timer.RemainingSeconds = 600;
+                await RunTimer(timer);
+                continue;
+            }
+            else if (action == "Skip Step")
+            {
+                timer.IsCompleted = true;
+                database.SaveTimer(timer);
+                RefreshTimerView();
+                currentStepIndex++;
+                continue;
+            }
+            else if (action == "Finish Recipe")
+            {
+                timer.IsCompleted = true;
+                database.SaveTimer(timer);
+                RefreshTimerView();
+                currentStepIndex++;
+            }
+            else // Next Step
+            {
+                currentStepIndex++;
+            }
+        }
+
+        await DisplayAlertAsync("Recipe Completed 🎉",
+            "You completed all steps.", "OK");
+
+        RestartRecipe();
+    }
+
+    void PlayPauseTapped(object sender, TappedEventArgs e)
+    {
+        if (e.Parameter is StepTimerModel timer)
+        {
+            if (timer.IsRunning)
+                PauseTimer(timer);
+            else
+                _ = RunTimer(timer);
+        }
     }
 
     async void CopyRecipe_Clicked(object sender, EventArgs e)
@@ -174,6 +366,21 @@ public partial class DishDetailsPage : ContentPage
         await Navigation.PushAsync(new CookingStepsPage(recipe));
     }
 
+    void FavoriteClicked(object sender, EventArgs e)
+    {
+        if (sender is Button button &&
+            button.CommandParameter is RecipeModel recipe)
+        {
+            recipe.IsFavorite = !recipe.IsFavorite;
+
+            database.SaveRecipe(recipe);
+
+            // Force UI refresh
+            BindingContext = null;
+            BindingContext = recipe;
+        }
+    }
+
     public static class PermissionHelper
     {
         public static async Task RequestWithExplanation<T>(string message)
@@ -197,6 +404,12 @@ public partial class DishDetailsPage : ContentPage
             }
         }
     }
+
+    async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();

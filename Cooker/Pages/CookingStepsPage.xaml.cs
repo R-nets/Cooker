@@ -3,6 +3,9 @@ using Cooker.Services;
 using Cooker.ViewModels;
 using Microsoft.Maui.Storage;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
+using System;
+using System.Collections.Generic;
 
 namespace Cooker.Pages;
 
@@ -10,26 +13,172 @@ public partial class CookingStepsPage : ContentPage
 {
     readonly RecipeModel recipe;
     private readonly DatabaseService database;
-    bool isTimerMultiDeleteMode = false;
+    readonly bool isInitializing = true;
+    bool isAutoSaving = false;
+    readonly bool isNewRecipe;
+    bool hasUnsavedChanges = false;
     readonly ObservableCollection<StepTimerModel> timers = [];
+    readonly ObservableCollection<StepInputModel> stepInputs = [];
+    static readonly string[] LineSeparators = ["\r\n", "\n", "\r"];
 
     public CookingStepsPage(RecipeModel model)
     {
         InitializeComponent();
 
+        // lock initialization mode
+        isInitializing = true;
+
+        // If null, create empty recipe
         recipe = model ?? new RecipeModel();
         database = new DatabaseService();
 
+        // No ID means new recipe
+        isNewRecipe = recipe.Id == 0;
+
+        // detach old handlers (safety)
+        NameEntry.TextChanged -= OnNameChanged;
+        IngredientsEditor.TextChanged -= OnIngredientsChanged;
+
+        // attach clean handlers (ONLY ONCE)
+        NameEntry.TextChanged += OnNameChanged;
+        IngredientsEditor.TextChanged += OnIngredientsChanged;
+
         NameEntry.Text = recipe.Name ?? string.Empty;
         IngredientsEditor.Text = recipe.Ingredients ?? string.Empty;
-        StepsEditor.Text = recipe.Steps ?? string.Empty;
+
+        // Load cooking steps from SQLite
+        var existingTimers = isNewRecipe
+            ? []
+            : database.GetTimersByRecipe(recipe.Id) ?? [];
+
+        // Set counter
+        int totalSteps = existingTimers.Count > 0
+            ? existingTimers.Max(t => t.StepIndex)
+            : 1;
+
+        StepsStepper.Value = totalSteps;
+        StepsCountLabel.Text = totalSteps.ToString();
 
         if (!string.IsNullOrEmpty(recipe.ImagePath))
             RecipeImage.Source = recipe.ImagePath;
 
-        timers = [.. database.GetTimersByRecipe(recipe.Id)];
+        LoadStepInputs();
 
-        TimerCollection.ItemsSource = timers;
+        // Allow user editing again
+        // Reset the unsaved changes
+        hasUnsavedChanges = false;
+        isInitializing = false;
+
+        // If new recipe
+        if (isNewRecipe)
+        {
+            stepInputs.Clear();
+            StepsStepper.Value = 1;
+            StepsCountLabel.Text = "1";
+            LoadStepInputs();
+        }
+    }
+
+    void OnNameChanged(object? sender, TextChangedEventArgs e)
+    {
+        // IF still initializing ignore event
+        // ELSE: Mark recipe as "not saved"
+        if (!isInitializing)
+            hasUnsavedChanges = true;
+    }
+
+    void OnIngredientsChanged(object? sender, TextChangedEventArgs e)
+    {
+        // IF still initializing ignore event
+        // ELSE: Mark recipe as "not saved"
+        if (!isInitializing)
+            hasUnsavedChanges = true;
+    }
+
+    void LoadStepInputs()
+    {
+        stepInputs.Clear();
+
+        int totalSteps = (int)StepsStepper.Value;
+
+        var existingTimers = isNewRecipe
+            ? []
+            : database.GetTimersByRecipe(recipe.Id) ?? [];
+
+        for (int i = 1; i <= totalSteps; i++)
+        {
+            var existing = existingTimers.FirstOrDefault(t => t.StepIndex == i);
+
+            StepInputModel step;
+
+            if (existing != null)
+            {
+                step = new StepInputModel
+                {
+                    StepIndex = i,
+                    Description = existing.StepDescription,
+                    Hours = (existing.TimerSeconds / 3600).ToString(),
+                    Minutes = ((existing.TimerSeconds % 3600) / 60).ToString(),
+                    Seconds = (existing.TimerSeconds % 60).ToString(),
+                    TimerId = existing.Id
+                };
+            }
+            else
+            {
+                // Retain Blank timers
+                step = new StepInputModel
+                {
+                    StepIndex = i,
+                    Description = "",
+                    Hours = "0",
+                    Minutes = "0",
+                    Seconds = "0",
+                    TimerId = 0
+                };
+            }
+
+            step.PropertyChanged += (_, __) =>
+            {
+                if (!isInitializing)
+                    hasUnsavedChanges = true;
+                AutoSave();
+            };
+
+            stepInputs.Add(step);
+        }
+
+        StepCollection.ItemsSource = stepInputs;
+    }
+
+    async void AutoSave()
+    {
+        if (isAutoSaving) return;
+
+        isAutoSaving = true;
+
+        foreach (var step in stepInputs)
+        {
+            int h = int.TryParse(step.Hours, out var hh) ? hh : 0;
+            int m = int.TryParse(step.Minutes, out var mm) ? mm : 0;
+            int s = int.TryParse(step.Seconds, out var ss) ? ss : 0;
+
+            int total = (h * 3600) + (m * 60) + s;
+
+            if (total <= 0) continue;
+
+            var timer = new StepTimerModel
+            {
+                Id = step.TimerId,
+                RecipeId = recipe.Id,
+                StepIndex = step.StepIndex,
+                StepDescription = step.Description,
+                TimerSeconds = total
+            };
+
+            database.SaveTimer(timer);
+        }
+
+        isAutoSaving = false;
     }
 
     async void AddImage_Clicked(object sender, EventArgs e)
@@ -60,6 +209,14 @@ public partial class CookingStepsPage : ContentPage
         }
         else if (action == "Gallery")
         {
+            if (!Preferences.Default.Get("gallery", true))
+            {
+                await DisplayAlertAsync("Permission Disabled",
+                    "Enable gallery permission in settings first.",
+                    "OK");
+                return;
+            }
+
             await PermissionHelper.RequestWithExplanation<Permissions.Photos>(
                 "Photo access is needed to select images.");
 
@@ -81,174 +238,176 @@ public partial class CookingStepsPage : ContentPage
         RecipeImage.Source = newPath;
     }
 
-    async void AddTimer_Clicked(object sender, EventArgs e)
+    void StepsStepper_ValueChanged(object sender, ValueChangedEventArgs e)
     {
-        if (recipe.Id == 0)
+        int newValue = (int)e.NewValue;
+
+        // double-check with users before reducing
+        if (newValue < stepInputs.Count)
         {
-            recipe.Name = NameEntry?.Text ?? "New Recipe";
-            recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? string.Empty;
-            recipe.Ingredients = IngredientsEditor?.Text ?? string.Empty;
-            recipe.Steps = StepsEditor?.Text ?? string.Empty;
+            bool hasData = stepInputs
+                .Skip(newValue)
+                .Any(s => !string.IsNullOrWhiteSpace(s.Description)
+                       || s.Hours != "0"
+                       || s.Minutes != "0"
+                       || s.Seconds != "0");
 
-            database.SaveRecipe(recipe);
-        }
-
-        bool hasHours = int.TryParse(HourEntry.Text, out int hours);
-        bool hasMinutes = int.TryParse(MinuteEntry.Text, out int minutes);
-        bool hasSeconds = int.TryParse(SecondEntry.Text, out int seconds);
-
-        if (!hasHours)
-            hours = 0;
-
-        if (!hasMinutes)
-            minutes = 0;
-
-        if (!hasSeconds)
-            seconds = 0;
-
-        int totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-
-        if (totalSeconds <= 0)
-        {
-            await DisplayAlertAsync("Error", "Please enter a valid time greater than 0.", "OK");
-            return;
-        }
-
-        var timer = new StepTimerModel
-        {
-            RecipeId = recipe.Id,
-            StepDescription = StepDescriptionEntry.Text ?? "",
-            TimerSeconds = totalSeconds
-        };
-
-        database.SaveTimer(timer);
-
-        timers.Add(timer);
-
-        TimerCollection.ItemsSource = null;
-        TimerCollection.ItemsSource = timers;
-
-        await DisplayAlertAsync("Success", "Timer added successfully.", "OK");
-        await this.FadeToAsync(0.8, 100);
-        await this.FadeToAsync(1, 150);
-
-        StepDescriptionEntry.Text = string.Empty;
-        HourEntry.Text = string.Empty;
-        MinuteEntry.Text = string.Empty;
-        SecondEntry.Text = string.Empty;
-    }
-
-    async void DeleteTimer_Clicked(object sender, EventArgs e)
-    {
-        if (sender is Button btn &&
-            btn.CommandParameter is StepTimerModel timer)
-        {
-            bool confirm = await DisplayAlertAsync(
-                "Delete Timer",
-                "Are you sure you want to delete this timer?",
-                "Yes",
-                "No");
-
-            if (!confirm)
-                return;
-
-            database.DeleteTimer(timer);
-
-            timers.Remove(timer);
-
-            TimerCollection.ItemsSource = null;
-            TimerCollection.ItemsSource = timers;
-        }
-    }
-
-    void EnableMultiDelete_Clicked(object sender, EventArgs e)
-    {
-        isTimerMultiDeleteMode = !isTimerMultiDeleteMode;
-
-        if (isTimerMultiDeleteMode)
-        {
-            TimerCollection.SelectionMode = SelectionMode.Multiple;
-            MultiDeleteButton.Text = "Disable Multi Delete";
-            MultiDeleteButton.BackgroundColor = Colors.IndianRed;
-        }
-        else
-        {
-            TimerCollection.SelectionMode = SelectionMode.None;
-            TimerCollection.SelectedItems.Clear();
-            MultiDeleteButton.Text = "Enable Multi Delete";
-            MultiDeleteButton.BackgroundColor = Colors.LightBlue;
-        }
-    }
-
-    async void DeleteSelectedTimers_Clicked(object sender, EventArgs e)
-    {
-        if (!isTimerMultiDeleteMode)
-        {
-            await DisplayAlertAsync(
-                "Multi Delete",
-                "Please enable multi delete mode first.",
-                "OK");
-            return;
-        }
-
-        if (TimerCollection.SelectedItems.Count == 0)
-        {
-            await DisplayAlertAsync(
-                "No Timers Selected",
-                "Please select at least one timer.",
-                "OK");
-            return;
-        }
-
-        bool confirm = await DisplayAlertAsync(
-            "Delete Timers",
-            $"Delete {TimerCollection.SelectedItems.Count} selected timer(s)?",
-            "Yes",
-            "No");
-
-        if (!confirm)
-            return;
-
-        foreach (var item in TimerCollection.SelectedItems.ToList())
-        {
-            if (item is StepTimerModel timer)
+            if (hasData)
             {
-                database.DeleteTimer(timer);
-                timers.Remove(timer);
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    bool confirm = await DisplayAlertAsync(
+                        "Warning",
+                        "You are removing steps with data. Continue?",
+                        "Yes",
+                        "No");
+
+                    if (!confirm)
+                    {
+                        StepsStepper.Value = stepInputs.Count;
+                        return;
+                    }
+
+                    ApplyStepCount(newValue);
+                });
+
+                return;
             }
         }
 
-        TimerCollection.ItemsSource = null;
-        TimerCollection.ItemsSource = timers;
+        ApplyStepCount(newValue);
+    }
 
-        TimerCollection.SelectedItems.Clear();
-        TimerCollection.SelectionMode = SelectionMode.None;
-        isTimerMultiDeleteMode = false;
+    void ApplyStepCount(int totalSteps)
+    {
+        StepsCountLabel.Text = totalSteps.ToString();
+
+        while (stepInputs.Count < totalSteps)
+        {
+            var step = new StepInputModel
+            {
+                StepIndex = stepInputs.Count + 1
+            };
+
+            step.PropertyChanged += (_, __) =>
+            {
+                if (!isInitializing)
+                    hasUnsavedChanges = true;
+                AutoSave();
+            };
+
+            stepInputs.Add(step);
+        }
+
+        while (stepInputs.Count > totalSteps)
+        {
+            stepInputs.RemoveAt(stepInputs.Count - 1);
+        }
+
+        // For re-indexing
+        for (int i = 0; i < stepInputs.Count; i++)
+        {
+            stepInputs[i].StepIndex = i + 1;
+        }
+    }
+
+    void GenerateSteps()
+    {
+        stepInputs.Clear();
+
+        int totalSteps = (int)StepsStepper.Value;
+        if (totalSteps <= 0)
+            return;
+
+        for (int i = 0; i < totalSteps; i++)
+        {
+            stepInputs.Add(new StepInputModel
+            {
+                StepIndex = i + 1
+            });
+        }
+
+        StepCollection.ItemsSource = stepInputs;
     }
 
     async void SaveRecipe_Clicked(object sender, EventArgs e)
     {
+        hasUnsavedChanges = false;
         var database = new DatabaseService();
 
         recipe.Name = NameEntry?.Text ?? string.Empty;
         recipe.Cuisine = CuisinePicker?.SelectedItem?.ToString() ?? string.Empty;
         recipe.Ingredients = IngredientsEditor?.Text ?? string.Empty;
-        recipe.Steps = StepsEditor?.Text ?? string.Empty;
+        recipe.Steps = ((int)StepsStepper.Value).ToString();
 
         database.SaveRecipe(recipe);
 
-        foreach (var timer in timers)
+        foreach (var step in stepInputs)
         {
-            timer.RecipeId = recipe.Id;
-            database.SaveTimer(timer);
+            int h = int.TryParse(step.Hours, out var hh) ? hh : 0;
+            int m = int.TryParse(step.Minutes, out var mm) ? mm : 0;
+            int s = int.TryParse(step.Seconds, out var ss) ? ss : 0;
+
+            int total = (h * 3600) + (m * 60) + s;
+
+            if (total <= 0)
+                continue;
+
+            var timer = new StepTimerModel
+            {
+                Id = step.TimerId,
+                RecipeId = recipe.Id,
+                StepIndex = step.StepIndex,
+                StepDescription = step.Description,
+                TimerSeconds = total
+            };
+
+            // Update if timer Id exists
+            database.SaveTimer(timer); 
         }
 
         RecipeViewModel.Current?.Refresh();
 
         await DisplayAlertAsync("Saved", "Recipe saved successfully", "OK");
-
+        hasUnsavedChanges = false;
         await Navigation.PopAsync();
     }
+
+    protected override bool OnBackButtonPressed()
+    {
+        if (!hasUnsavedChanges)
+            return base.OnBackButtonPressed();
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            bool confirm = await DisplayAlertAsync(
+                "Unsaved Changes",
+                "You have unsaved recipe data. Leave without saving?",
+                "Leave",
+                "Stay");
+
+            if (confirm)
+            {
+                hasUnsavedChanges = false;
+                await Navigation.PopAsync();
+            }
+        });
+
+        // To cancel default navigation
+        return true;
+    }
+
+    void RefreshUI()
+    {
+        StepCollection.ItemsSource = null;
+        StepCollection.ItemsSource = stepInputs;
+    }
+
+    async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -257,6 +416,8 @@ public partial class CookingStepsPage : ContentPage
 
         BackgroundOverlay.IsVisible = 
             Preferences.Default.ContainsKey("background_image");
+
+        RefreshUI();
     }
 
 }

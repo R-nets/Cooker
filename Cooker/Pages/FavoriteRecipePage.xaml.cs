@@ -10,8 +10,7 @@ namespace Cooker.Pages;
 public partial class FavoriteRecipePage : ContentPage
 {
     readonly DatabaseService database = new();
-    readonly INotificationService? 
-        notificationService;
+    readonly INotificationService? notificationService;
 
     public FavoriteRecipePage()
     {

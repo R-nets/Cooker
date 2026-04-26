@@ -11,14 +11,18 @@ public partial class App : Application
     {
         InitializeComponent();
         notificationService = service;
-        ApplySavedTheme();
+
+        var theme = App.GetSavedTheme();
+        UserAppTheme = theme;
+
+        ApplyThemeColors(theme);
     }
 
-    void ApplySavedTheme()
+    static AppTheme GetSavedTheme()
     {
         int theme = Preferences.Default.Get("theme", 2);
 
-        UserAppTheme = theme switch
+        return theme switch
         {
             0 => AppTheme.Light,
             1 => AppTheme.Dark,
@@ -54,6 +58,21 @@ public partial class App : Application
         else
         {
             contentPage.BackgroundImageSource = null;
+        }
+    }
+
+    public static void ApplyThemeColors(AppTheme theme)
+    {
+        var dict = Current?.Resources;
+        if (dict == null) return;
+
+        if (theme == AppTheme.Dark)
+        {
+            dict["BorderColor"] = Color.FromArgb("#404040");
+        }
+        else
+        {
+            dict["BorderColor"] = Color.FromArgb("#E0E0E0");
         }
     }
 }

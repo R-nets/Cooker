@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns:converters="clr-namespace:Cooker.Converters"
+    xmlns:OnPlatform="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
     x:Class="Cooker.Pages.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -16,6 +17,7 @@
 
     <Grid>
 
+        <!-- Background image -->
         <Image
             Source="{Binding BackgroundImage}"
             Aspect="AspectFit"
@@ -44,43 +46,55 @@
                         x:Name="FilterBar" 
                         Spacing="10">
 
-                        <Picker
-                            Grid.Column="2"
-                            x:Name="CuisinePicker"
-                            Title="Filter Cuisine"
-                            Margin="0,15,0,0"
-                            SelectedIndexChanged="CuisineChanged"
-                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                        Dark={StaticResource PrimaryTextDark}}" >
+                        <!-- Picker -->
+                        <Border
+                            Stroke="{DynamicResource BorderColor}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="5">
 
-
-                            <Picker.Items>
-                                <x:String>All</x:String>
-                                <x:String>Chinese</x:String>
-                                <x:String>Japanese</x:String>
-                                <x:String>Italian</x:String>
-                                <x:String>Western</x:String>
-                                <x:String>Indian</x:String>
-                            </Picker.Items>
-
-                        </Picker>
-
-                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
-
-                            <Button
-                                Grid.Column="1"
-                                Text="＋"
-                                Clicked="AddRecipe_Clicked"
+                            <Picker
+                                x:Name="CuisinePicker"
+                                Title="Filter Cuisine"
+                                SelectedIndexChanged="CuisineChanged"
+                                BackgroundColor="Transparent"
                                 TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                            Dark={StaticResource PrimaryTextDark}}" />
-                        </Grid>
+                                                                    Dark={StaticResource PrimaryTextDark}}">
 
+                                <Picker.Items>
+                                    <x:String>All</x:String>
+                                    <x:String>Chinese</x:String>
+                                    <x:String>Japanese</x:String>
+                                    <x:String>Italian</x:String>
+                                    <x:String>Western</x:String>
+                                    <x:String>Indian</x:String>
+                                </Picker.Items>
 
-                        <SearchBar
-                            Grid.Row="1"
-                            Margin="0,15,0,0"
-                            Placeholder="Search recipes..."
-                            TextChanged="SearchChanged"/>
+                            </Picker>
+
+                        </Border>
+
+                        <!-- SearchBar -->
+                        <Border 
+                            Stroke="{DynamicResource BorderColor}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="5">
+
+                            <SearchBar
+                                Placeholder="Search recipes..."
+                                TextChanged="SearchChanged"
+                                BackgroundColor="Transparent" />
+                        </Border>
+
+                        <!-- Add recipe Button -->
+                        <Button
+                            Text="＋"
+                            Clicked="AddRecipe_Clicked"
+                            HorizontalOptions="End"
+                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                                Dark={StaticResource PrimaryTextDark}}" />
+
                     </VerticalStackLayout>
 
                 </Grid>
@@ -177,6 +191,28 @@
                                             </Button.Triggers>
 
                                             <Button.Text>♡</Button.Text>
+
+                                        </Button>
+                                        <Button
+                                            Text="Delete"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            WidthRequest="80"
+                                            HeightRequest="30"
+                                            HorizontalOptions="End"
+                                            VerticalOptions="End"
+                                            Margin="10"
+                                            Clicked="DeleteRecipe"
+                                            CommandParameter="{Binding .}">
+
+                                            <Button.IsVisible>
+                                                <OnPlatform x:TypeArguments="x:Boolean">
+                                                    <On Platform="WinUI" Value="True" />
+                                                    <On Platform="Android" Value="False" />
+                                                    <On Platform="iOS" Value="False" />
+                                                    <On Platform="MacCatalyst" Value="False" />
+                                                </OnPlatform>
+                                            </Button.IsVisible>
 
                                         </Button>
                                     </Grid>

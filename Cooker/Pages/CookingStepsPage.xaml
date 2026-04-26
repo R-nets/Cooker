@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cooker.Pages.CookingStepsPage"
-    Title="Cooking Steps Page"
+    Title="Steps Page"
     BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
                                        Dark={StaticResource PageBackgroundColorDark}}">
 
@@ -27,6 +27,21 @@
             <ScrollView>
 
                 <VerticalStackLayout Padding="20" Spacing="15">
+
+                    <Button
+                        Text="Back"
+                        Clicked="OnBackClicked"
+                        BackgroundColor="Gray"
+                        TextColor="White">
+
+                        <Button.IsVisible>
+                            <OnPlatform x:TypeArguments="x:Boolean">
+                                <On Platform="WinUI" Value="True" />
+                                <On Platform="Android,iOS,MacCatalyst" Value="False" />
+                            </OnPlatform>
+                        </Button.IsVisible>
+
+                    </Button>
 
                     <Image
                         x:Name="RecipeImage"
@@ -60,86 +75,69 @@
                         x:Name="IngredientsEditor"
                         Placeholder="Ingredients"/>
 
-                    <Editor
-                        x:Name="StepsEditor"
-                        Placeholder="Steps"/>
+                    <HorizontalStackLayout Spacing="10">
+
+                        <Label Text="Steps:"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                           Dark={StaticResource PrimaryTextDark}}" />
+
+                        <Stepper x:Name="StepsStepper"
+                                 Minimum="1"
+                                 Maximum="20"
+                                 Increment="1"
+                                 ValueChanged="StepsStepper_ValueChanged"/>
+
+                        <Label x:Name="StepsCountLabel"
+                               Text="1"
+                               VerticalOptions="Center"/>
+
+                    </HorizontalStackLayout>
 
                     <Label Text="Add Timer for Step" 
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
                                                        Dark={StaticResource PrimaryTextDark}}" />
 
-                    <HorizontalStackLayout Spacing="10">
 
-                        <HorizontalStackLayout Spacing="10">
-                            <Entry x:Name="HourEntry"
-                               Placeholder="Hours"
-                               Keyboard="Numeric"
-                               WidthRequest="90"
-                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                           Dark={StaticResource PrimaryTextDark}}" />
-
-                            <Entry x:Name="MinuteEntry"
-                               Placeholder="Minutes"
-                               Keyboard="Numeric"
-                               WidthRequest="90"
-                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                           Dark={StaticResource PrimaryTextDark}}" />
-
-                            <Entry x:Name="SecondEntry"
-                               Placeholder="Seconds"
-                               Keyboard="Numeric"
-                               WidthRequest="90"
-                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                           Dark={StaticResource PrimaryTextDark}}" />
-
-                        </HorizontalStackLayout>
-
-                    </HorizontalStackLayout>
-
-                    <Entry 
-                        x:Name="StepDescriptionEntry" 
-                        Placeholder="Step description"
-                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                           Dark={StaticResource PrimaryTextDark}}" />
-
-                    <Button
-                        Text="Add Timer"
-                        Clicked="AddTimer_Clicked"
-                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                           Dark={StaticResource PrimaryTextDark}}" />
-
-                    <CollectionView x:Name="TimerCollection"
-                                     SelectionMode="None">
+                    <CollectionView x:Name="StepCollection">
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border
-                                    StrokeThickness="1"
-                                    Padding="10"
-                                    Margin="5">
 
-                                    <VerticalStackLayout Spacing="5">
+                                <Border Margin="5"
+                                        Padding="10"
+                                        StrokeThickness="1"
+                                        Stroke="{DynamicResource BorderColor}"
+                                        StrokeShape="RoundRectangle 10">
 
-                                        <Label
-                                            Text="{Binding StepDescription}"
-                                            FontAttributes="Bold"
-                                            FontSize="16"
-                                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                                        Dark={StaticResource PrimaryTextDark}}" />
+                                    <VerticalStackLayout>
 
-                                        <Label
-                                            Text="{Binding TimerSeconds, StringFormat='Time: {0} seconds'}"
-                                            FontSize="14"
-                                            TextColor="Gray"/>
+                                        <Label Text="{Binding StepIndex, StringFormat='Step {0}'}" 
+                                               TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                                           Dark={StaticResource PrimaryTextDark}}" />
 
-                                        <Button
-                                            Text="Delete Timer"
-                                            BackgroundColor="Red"
-                                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                            Dark={StaticResource PrimaryTextDark}}" 
-                                            CommandParameter="{Binding .}"
-                                            Clicked="DeleteTimer_Clicked"/>
+                                        <Entry Placeholder="Description"
+                                               Text="{Binding Description}" />
+
+                                        <HorizontalStackLayout>
+
+                                            <Entry 
+                                                Placeholder="H" 
+                                                WidthRequest="60" 
+                                                Text="{Binding Hours}" />
+
+                                            <Entry 
+                                                Placeholder="M" 
+                                                WidthRequest="60" 
+                                                Text="{Binding Minutes}" />
+
+                                            <Entry 
+                                                Placeholder="S" 
+                                                WidthRequest="60" 
+                                                Text="{Binding Seconds}" />
+
+                                        </HorizontalStackLayout>
 
                                     </VerticalStackLayout>
 
@@ -150,25 +148,7 @@
 
                     </CollectionView>
 
-                    <HorizontalStackLayout
-                        Margin="0,10,0,0"
-                        Spacing="10">
-
-                        <Button x:Name="MultiDeleteButton"
-                            Text="Enable Multi Delete"
-                            Clicked="EnableMultiDelete_Clicked"
-                            BackgroundColor="LightBlue"
-                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                        Dark={StaticResource PrimaryTextDark}}" />
-
-                        <Button Text="Delete Selected Timers"
-                            Clicked="DeleteSelectedTimers_Clicked"
-                            BackgroundColor="Red"
-                            TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                        Dark={StaticResource PrimaryTextDark}}" />
-                    </HorizontalStackLayout>
-
-                    <Label Text="Tap Enable Multi Delete, then select multiple timers below."
+                    <Label Text="Please save this recipe."
                        FontSize="12"
                        TextColor="Gray" />
 

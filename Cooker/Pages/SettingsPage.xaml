@@ -56,12 +56,38 @@
                 <HorizontalStackLayout>
 
                     <Label 
+                        Text="Flash Alert (Torch)"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                            Dark={StaticResource PrimaryTextDark}}" />
+
+                    <Switch
+                        x:Name="TorchSwitch"
+                        Toggled="TorchChanged"/>
+
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+
+                    <Label 
                         Text="Camera permission"
                         TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
                                                     Dark={StaticResource PrimaryTextDark}}" />
                     <Switch
                         x:Name="CameraSwitch"
                         Toggled="CameraChanged" />
+
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+
+                    <Label 
+                        Text="Gallery permission"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
+
+                    <Switch
+                        x:Name="GallerySwitch"
+                        Toggled="GalleryChanged" />
 
                 </HorizontalStackLayout>
 

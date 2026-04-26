@@ -1,5 +1,5 @@
-using System.Linq;
 using Microsoft.Maui.Storage;
+using System.Linq;
 
 namespace Cooker.Pages;
 
@@ -17,6 +17,12 @@ public partial class SettingsPage : ContentPage
 
         CameraSwitch.IsToggled =
             Preferences.Default.Get("camera", true);
+
+        TorchSwitch.IsToggled =
+            Preferences.Default.Get("torch", true);
+
+        GallerySwitch.IsToggled =
+            Preferences.Default.Get("gallery", true);
     }
 
     protected override void OnAppearing()
@@ -46,16 +52,51 @@ public partial class SettingsPage : ContentPage
         Preferences.Default.Set("camera", e.Value);
     }
 
+    void GalleryChanged(object sender, ToggledEventArgs e)
+    {
+        Preferences.Default.Set("gallery", e.Value);
+    }
+
+    void TorchChanged(object sender, ToggledEventArgs e)
+    {
+        Preferences.Default.Set("torch", e.Value);
+    }
+
     void ThemePicker_SelectedIndexChanged(object sender, EventArgs e)
     {
         Preferences.Default.Set("theme", ThemePicker.SelectedIndex);
 
-        Application.Current!.UserAppTheme = ThemePicker.SelectedIndex switch
+        var theme = ThemePicker.SelectedIndex switch
         {
             0 => AppTheme.Light,
             1 => AppTheme.Dark,
             _ => AppTheme.Light
         };
+
+        Application.Current!.UserAppTheme = theme;
+
+        App.ApplyThemeColors(theme);
+    }
+
+    static void RefreshAllPages()
+    {
+        var windows = Application.Current?.Windows;
+
+        if (windows == null) return;
+
+        foreach (var window in windows)
+        {
+            if (window.Page is NavigationPage nav)
+            {
+                foreach (var page in nav.Navigation.NavigationStack)
+                {
+                    if (page is Cooker.Pages.CookingStepsPage cookingPage)
+                    {
+                        cookingPage.SendAppearing(); // 👈 force re-render
+                    }
+                }
+            }
+        }
     }
 
     async void ChooseBackground_Clicked(object sender, EventArgs e)
@@ -129,12 +170,16 @@ public partial class SettingsPage : ContentPage
 
     static void RefreshAllPagesBackground()
     {
-        var window = Application.Current?.Windows.FirstOrDefault();
-        var page = window?.Page;
+        var windows = Application.Current?.Windows;
 
-        if (page != null)
+        if (windows != null && windows.Count > 0)
         {
-            App.ApplyBackgroundToPage(page);
+            var page = windows[0].Page;
+
+            if (page != null)
+            {
+                App.ApplyBackgroundToPage(page);
+            }
         }
     }
 }

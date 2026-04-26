@@ -3,11 +3,18 @@
     xmlns:layouts="clr-namespace:Cooker.Layouts"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Cooker.Converters"
     x:Class="Cooker.Pages.DishDetailsPage"
-    Title="Details Page"
+    Title="Cooking Page"
     BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColorLight},
                                        Dark={StaticResource PageBackgroundColorDark}}">
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
     <Grid>
 
         <Image
@@ -23,11 +30,26 @@
             InputTransparent="True"
             Opacity="0.6"
             BackgroundColor="{AppThemeBinding Light=White, Dark=Black}" />
-        
+
         <Grid>
             <ScrollView>
 
                 <VerticalStackLayout Padding="20" Spacing="15">
+
+                    <Button
+                        Text="Back"
+                        Clicked="OnBackClicked"
+                        BackgroundColor="Gray"
+                        TextColor="White">
+
+                        <Button.IsVisible>
+                            <OnPlatform x:TypeArguments="x:Boolean">
+                                <On Platform="WinUI" Value="True" />
+                                <On Platform="Android,iOS,MacCatalyst" Value="False" />
+                            </OnPlatform>
+                        </Button.IsVisible>
+
+                    </Button>
 
                     <Image
                         x:Name="DishImage"
@@ -40,6 +62,35 @@
                         FontAttributes="Bold"
                         TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
                                                     Dark={StaticResource PrimaryTextDark}}" />
+
+                    <Button
+                        WidthRequest="30"
+                        HeightRequest="30"
+                        Padding="0"
+                        VerticalOptions="Start"
+                        HorizontalOptions="End"
+                        BackgroundColor="White"
+                        TextColor="Orange"
+                        BorderColor="Orange"
+                        BorderWidth="1"
+                        CornerRadius="20"
+                        Clicked="FavoriteClicked"
+                        CommandParameter="{Binding .}">
+
+                        <Button.Triggers>
+                            <DataTrigger
+                                TargetType="Button"
+                                Binding="{Binding IsFavorite}"
+                                Value="True">
+
+                                <Setter Property="Text" Value="❤" />
+                                <Setter Property="BackgroundColor" Value="Orange" />
+                                <Setter Property="TextColor" Value="White" />
+                            </DataTrigger>
+                        </Button.Triggers>
+
+                        <Button.Text>♡</Button.Text>
+                    </Button>
 
                     <Label
                         x:Name="CuisineLabel"
@@ -75,6 +126,22 @@
                         TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
                                                     Dark={StaticResource PrimaryTextDark}}" />
 
+                    <Label
+                        Text="Steps in Timer"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                    Dark={StaticResource PrimaryTextDark}}" />
+
+                    <CollectionView x:Name="TimerCollection">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <layouts:TimerCardView Loaded="TimerCard_Loaded" 
+                                    IsVisible="{Binding IsCompleted, Converter={StaticResource InverseBoolConverter}}" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
                     <Button
                         Text="Restart Recipe"
                         BackgroundColor="Orange"
@@ -82,24 +149,12 @@
                                                     Dark={StaticResource PrimaryTextDark}}" 
                         Clicked="RestartRecipe_Clicked"/>
 
-                    <Label
-                        Text="Timers"
-                        FontAttributes="Bold"
-                        FontSize="18"
-                        TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                                                    Dark={StaticResource PrimaryTextDark}}" />
-
-                    <CollectionView 
-                        x:Name="TimerCollection">
-
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <layouts:TimerCardView Loaded="TimerCard_Loaded" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-
-                    </CollectionView>
-
+                    <Button
+                        Text="Start Cooking (Auto)"
+                        Clicked="StartSequentialCooking_Clicked"
+                        BackgroundColor="Green"
+                        TextColor="White"/>
+                    
                     <Button
                         Text="Edit Recipe"
                         Clicked="EditRecipe_Clicked"

@@ -1,7 +1,7 @@
 using Cooker.Models;
 using Cooker.Services;
 using Cooker.ViewModels;
-
+using System.Collections;
 namespace Cooker.Pages;
 
 public partial class HomePage : ContentPage
@@ -13,7 +13,7 @@ public partial class HomePage : ContentPage
     bool isAnimating = false;
     const double threshold = 10;
     double filterHeight = -1;
-    const double showButtonOffset = 126;
+    const double showButtonOffset = 26;
 
     public HomePage(INotificationService service)
     {
@@ -131,8 +131,12 @@ public partial class HomePage : ContentPage
 
         isAnimating = true;
 
-        // Up to top
-        RecipeCollection.ScrollTo(0, position: ScrollToPosition.Start, animate: true);
+        if (RecipeCollection.ItemsSource is ICollection collection && collection.Count > 0)
+        {
+            // Up to top
+            var firstItem = collection.Cast<object>().First();
+            RecipeCollection.ScrollTo(firstItem, position: ScrollToPosition.Start, animate: true);
+        }
 
         // UI settles before restoring drawer
         await Task.Delay(100);
@@ -201,8 +205,11 @@ public partial class HomePage : ContentPage
 
         recipe.IsFavorite = !recipe.IsFavorite;
 
-        var database = new DatabaseService();
-        database.SaveRecipe(recipe);
+        new DatabaseService().SaveRecipe(recipe);
+
+        // Force UI refresh
+        RecipeCollection.ItemsSource = null;
+        RecipeCollection.ItemsSource = viewModel.Recipes;
 
         await btn.ScaleToAsync(1.2, 150);
         await btn.ScaleToAsync(1.0, 150);
@@ -246,7 +253,15 @@ public partial class HomePage : ContentPage
 
     async void DeleteRecipe(object sender, EventArgs e)
     {
-        if (sender is not SwipeItem swipe || swipe.BindingContext is not RecipeModel recipe)
+        RecipeModel? recipe = null;
+
+        if (sender is SwipeItem swipe)
+            recipe = swipe.BindingContext as RecipeModel;
+
+        else if (sender is Button btn)
+            recipe = btn.CommandParameter as RecipeModel;
+
+        if (recipe == null)
             return;
 
         bool confirm = await DisplayAlertAsync(

@@ -15,12 +15,22 @@
 
         <VerticalStackLayout Spacing="10">
 
-            <Label
-                Text="{Binding StepDescription}"
-                FontAttributes="Bold"
-                FontSize="16"
-                TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
-                            Dark={StaticResource PrimaryTextDark}}" />
+            <VerticalStackLayout Spacing="2">
+
+                <Label
+                    Text="{Binding StepIndex, StringFormat='Step {0}:'}"
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                Dark={StaticResource PrimaryTextDark}}" />
+
+                <Label
+                    Text="{Binding StepDescription}"
+                    FontSize="14"
+                    TextColor="{AppThemeBinding Light={StaticResource PrimaryTextLight},
+                                                Dark={StaticResource PrimaryTextDark}}" />
+
+            </VerticalStackLayout>
 
             <Label
                 Text="{Binding DisplayTime}"
